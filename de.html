@@ -104,6 +104,56 @@
     .face:nth-child(7) { transform: rotateY(270deg) translateZ(var(--radius)); }
     .face:nth-child(8) { transform: rotateY(315deg) translateZ(var(--radius)); }
 
+    .face-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    .face.active .face-content {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .face.active .profile-img {
+      display: block;
+    }
+
+    .face-details {
+      display: none;
+    }
+    .face.active .face-details {
+      display: block;
+    }
+
+    .face.active .expanded-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .text-box {
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      overflow-y: auto;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .face.active .face-content > *:not(.face-details) {
+      display: none;
+    }
+
   </style>
 </head>
 <body>
@@ -117,16 +167,141 @@
   <div id="container">
     <div id="prism">
       <section class="face" data-index="0" role="button" tabindex="0">
-        <img src="photo.png" alt="Profile Photo" style="width: 150px; margin-bottom: 10px;" />
-        ...Profile Content...
+        <div class="face-content">
+          <img src="photo.png" alt="Profile Photo" class="profile-img" style="width: 150px; height: auto; border-radius: 8px;" />
+          <div class="face-details expanded-content">
+            <div class="text-box">
+              <!-- Additional content can go here -->
+            </div>
+          </div>
+        </div>
       </section>
-      <section class="face" data-index="1" role="button" tabindex="0">...Programming & Web...</section>
-      <section class="face" data-index="2" role="button" tabindex="0">...Simulation & Embedded...</section>
-      <section class="face" data-index="3" role="button" tabindex="0">...Software & Design...</section>
-      <section class="face" data-index="4" role="button" tabindex="0">...Projects & Research...</section>
-      <section class="face" data-index="5" role="button" tabindex="0">...Education...</section>
-      <section class="face" data-index="6" role="button" tabindex="0">...Work Experience...</section>
-      <section class="face" data-index="7" role="button" tabindex="0">...Languages & Strengths...</section>
+      <section class="face" data-index="1" role="button" tabindex="0">
+        <div class="face-content">
+          <strong style="margin: auto;">Persönliche Informationen</strong>
+          <div class="face-details expanded-content">
+            <div class="text-box">
+              <h3 style="margin-top: 0;"> Name: </h3>
+              <p> Pooria Shahbazi </p>
+
+              <h3 style="margin-top: 0;"> Adresse: </h3>
+              <p> Borgfelder Straße 16, Hamburg, 20537 </p>
+
+              <h3 style="margin-top: 0;"> Telefon: </h3>
+              <p> +49 1573 1651744 </p>
+
+              <h3 style="margin-top: 0;"> E-Mail: </h3>
+              <p> shahbazi_poria@hotmail.com </p>
+
+              <h3 style="margin-top: 0;"> GitHub: </h3>
+              <p> <a href="https://github.com/PooriaShahbazi">github.com/PooriaShahbazi</a> </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="face" data-index="2" role="button" tabindex="0">
+        <div class="face-content">
+          <strong style="margin: auto;">Technische Fähigkeiten</strong>
+          <div class="face-details expanded-content">
+            <div class="text-box">
+              <h3 style="margin-top: 0;"> Programmiersprachen: </h3>
+              <p> C, C++, Java, Python, JavaScript </p>
+
+              <h3 style="margin-top: 0;"> Webentwicklung: </h3>
+              <p> HTML, CSS </p>
+
+              <h3 style="margin-top: 0;"> Wissenschaftliches Rechnen & Simulation: </h3>
+              <p> MATLAB (Signalanalyse), VHDL, FPGA-Programmierung (Vivado) </p>
+
+              <h3 style="margin-top: 0;"> Embedded & Robotik: </h3>
+              <p> ROS, OpenCV, FPGA (XDC, VHDL/EDAplayground), Schaltungsdesign (Digital) </p>
+
+              <h3 style="margin-top: 0;"> Softwareentwicklung: </h3>
+              <p> Unity, Android Studio (Java), LaTeX </p>
+
+              <h3 style="margin-top: 0;"> Kreative & Design-Tools: </h3>
+              <p> 2D/3D-Grafikdesign, Microsoft Office, Internetrecherche </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="face" data-index="3" role="button" tabindex="0">
+        <div class="face-content">
+          <strong style="margin: auto;">Sprachen</strong>
+          <div class="face-details expanded-content">
+            <div class="text-box">
+              <h3 style="margin-top: 0;"> Sprachkenntnisse: </h3>
+              <p> Persisch (Farsi): Muttersprache <br>
+              Englisch: C1 (Fortgeschritten) <br>
+              Deutsch: C1 (Fortgeschritten) <br>
+              Türkisch: Gute Kenntnisse <br>
+              Spanisch: Grundkenntnisse <br>
+              Armenisch: Grundkenntnisse </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="face" data-index="4" role="button" tabindex="0">
+        <div class="face-content">
+          <strong style="margin: auto;">Persönliche Stärken</strong>
+          <div class="face-details expanded-content">
+            <div class="text-box">
+              <h3 style="margin-top: 0;"> Persönliche Stärken: </h3>
+              <p> Ausgeprägte Team- und Führungsfähigkeiten <br>
+              Fähigkeit, unter Druck zu arbeiten <br>
+              Hohe Verantwortlichkeit und Zuverlässigkeit <br>
+              Schnelle Auffassungsgabe und lösungsorientiertes Denken </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="face" data-index="5" role="button" tabindex="0">
+        <div class="face-content">
+          <strong style="margin: auto;">Projekte & Forschung</strong>
+          <div class="face-details expanded-content">
+            <div class="text-box">
+              <h3 style="margin-top: 0;"> Projekte & Forschung: </h3>
+              <p>
+              <strong>Java-Anwendungsentwicklung:</strong> Entwicklung mehrerer Java-basierter Programme und Anwendungen (siehe GitHub). <br><br>
+              <strong>Verkehrslichtsimulation auf FPGA (VHDL - Vivado):</strong> Entwurf und Implementierung eines FPGA-basierten Verkehrslichtsteuerungssystems mit VHDL in Vivado. Anwendung digitaler Designtechniken zur Simulation und Optimierung realer Verkehrssysteme. (HAW Hamburg, Jan 2025) <br><br>
+              <strong>Teamleiter & Programmierer – RobotX Team:</strong> Leitung eines interdisziplinären Teams für die Entwicklung und Programmierung eines Roboters unter Einsatz von Python, ROS und OpenCV. (HAW Hamburg, April 2024) <br><br>
+              <strong>Webentwicklung – EzWg Team:</strong> Gestaltung und Umsetzung einer funktionsfähigen Website mit HTML, CSS und JavaScript. (HAW Hamburg, Dez 2024)
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="face" data-index="6" role="button" tabindex="0">
+        <div class="face-content">
+          <strong style="margin: auto;">Bildungsweg</strong>
+          <div class="face-details expanded-content">
+            <div class="text-box">
+              <h3 style="margin-top: 0;"> Bildungsweg: </h3>
+              <p>
+              <strong>B.Sc. Information Engineering:</strong> HAW Hamburg | Okt. 2023 – Gegenwärtig (Durchschnittsnote: 1,7) <br>
+              <strong>B.Sc. Technische Informatik:</strong> Leibniz Universität Hannover | Okt. 2021 – Sep. 2023 <br>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="face" data-index="7" role="button" tabindex="0">
+        <div class="face-content">
+          <strong style="margin: auto;">Berufserfahrung</strong>
+          <div class="face-details expanded-content">
+            <div class="text-box">
+              <h3 style="margin-top: 0;"> Berufserfahrung: </h3>
+              <p>
+              <strong>Servicekraft – Gastronomie:</strong> Giovanni L, Hannover & Hamburg | Jul 2021 – Gegenwärtig <br>
+              <strong>Lagerhelfer:</strong> Amazon Logistik, Garbsen | Dez 2020 – Jun 2021 <br>
+              <strong>Stellvertretender Finanzdirektor:</strong> Tochterunternehmen von BetConstruct, Jerewan | Jul 2019 – Dez 2019 <br>
+              <strong>Finanzbeauftragter:</strong> Tochterunternehmen von BetConstruct, Jerewan | Jan 2019 – Jun 2019 <br>
+              <strong>Grafikdesigner & Content Creator:</strong> International Association of Group, Jerewan | Jun 2016 – Dez 2016
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -156,6 +331,7 @@
         f.classList.remove('active');
         f.classList.remove('hidden');
       });
+      startIdleTimer(); // restart idle timer when face is unexpanded
     }
 
     faces.forEach(face => {
@@ -172,6 +348,7 @@
         const leftIndex = (frontIndex - 1 + faces.length) % faces.length;
 
         if (clickedIndex === frontIndex) {
+          isAutoRotating = false; // stop auto-rotation when expanded
           activeFace = face;
           face.classList.add('active');
           faces.forEach(f => {
@@ -321,7 +498,7 @@
         ctx.fill();
       }
 
-      if (!activeFace) drawConnections();
+      drawConnections();
       updatePoints();
       requestAnimationFrame(draw);
     }
@@ -379,7 +556,7 @@
       if (isAutoRotating && !activeFace) {
         currentRotation -= 0.1;
         updatePrismRotation();
-      } else if (pendingSnap) {
+      } else if (!isAutoRotating && !activeFace && pendingSnap) {
         pendingSnap = false;
         currentRotation = Math.round(currentRotation / snapAngle) * snapAngle;
         currentRotation -= snapAngle;
