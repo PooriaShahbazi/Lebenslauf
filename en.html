@@ -115,7 +115,10 @@
 
   <div id="container">
     <div id="prism">
-      <section class="face" data-index="0" role="button" tabindex="0">...Profile Content...</section>
+      <section class="face" data-index="0" role="button" tabindex="0">
+        <img src="photo.png" alt="Profile Photo" style="width: 150px; margin-bottom: 10px;" />
+        ...Profile Content...
+      </section>
       <section class="face" data-index="1" role="button" tabindex="0">...Programming & Web...</section>
       <section class="face" data-index="2" role="button" tabindex="0">...Simulation & Embedded...</section>
       <section class="face" data-index="3" role="button" tabindex="0">...Software & Design...</section>
@@ -343,19 +346,6 @@
     updateCylinderSize();
     createPoints();
     updateNeighbors();
-
-    const floatingPhoto = document.getElementById('floatingPhoto');
-    window.addEventListener('mousemove', e => {
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      const offsetX = Math.max(Math.min(e.clientX - centerX, 50), -50);
-      const offsetY = Math.max(Math.min(e.clientY - centerY, 50), -50);
-      floatingPhoto.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
-    });
-
-    window.addEventListener('mouseleave', () => {
-      floatingPhoto.style.transform = `translate(-50%, -50%)`;
-    });
 
     draw();
 
