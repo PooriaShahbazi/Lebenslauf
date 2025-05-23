@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interactive CV Cylinder + Restoring Star Network</title>
+  <style>
+    :root {
+      --bg-color: #0a0f1d;
+      --text-color: #ffffff;
+      --face-width: 300px;
+      --radius: 450px;
+      --height: 500px;
+      --transition-speed: 0.5s;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0a0f1d, #1e2a47);
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    #container {
+      width: calc(var(--radius) * 2);
+      height: var(--height);
+      perspective: 1400px;
+      position: relative;
+    }
+
+    #prism {
+      width: var(--face-width);
+      height: var(--height);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-style: preserve-3d;
+      transform: translate(-50%, -50%) rotateY(0deg);
+      transition: transform var(--transition-speed) ease-out;
+    }
+
+    .face {
+      position: absolute;
+      width: var(--face-width);
+      height: var(--height);
+      backface-visibility: hidden;
+      background: rgba(56, 65, 112, 0.66);
+      border-radius: 20px;
+      box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition:
+        width 0.7s ease,
+        height 0.7s ease,
+        margin 0.7s ease,
+        opacity 0.7s ease,
+        background 0.7s ease;
+      z-index: 0;
+    }
+
+    .face.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .face.active {
+      width: min(100vh, 100vw);
+      height: 60vh;
+      margin-left: calc((var(--face-width) - min(100vh, 100vw)) / 2);
+      margin-top: calc((var(--height) - 60vh) / 2);
+      opacity: 1;
+      z-index: 10;
+      background: rgb(2, 10, 54);
+      border-radius: 20px;
+      box-shadow: 0px 0px 50px rgba(255, 255, 255, 0.47);
+    }
+
+    .face:nth-child(1) { transform: rotateY(0deg) translateZ(var(--radius)); }
+    .face:nth-child(2) { transform: rotateY(45deg) translateZ(var(--radius)); }
+    .face:nth-child(3) { transform: rotateY(90deg) translateZ(var(--radius)); }
+    .face:nth-child(4) { transform: rotateY(135deg) translateZ(var(--radius)); }
+    .face:nth-child(5) { transform: rotateY(180deg) translateZ(var(--radius)); }
+    .face:nth-child(6) { transform: rotateY(225deg) translateZ(var(--radius)); }
+    .face:nth-child(7) { transform: rotateY(270deg) translateZ(var(--radius)); }
+    .face:nth-child(8) { transform: rotateY(315deg) translateZ(var(--radius)); }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+
+  <div id="container">
+    <div id="prism">
+      <section class="face" data-index="0" role="button" tabindex="0">...Profile Content...</section>
+      <section class="face" data-index="1" role="button" tabindex="0">...Programming & Web...</section>
+      <section class="face" data-index="2" role="button" tabindex="0">...Simulation & Embedded...</section>
+      <section class="face" data-index="3" role="button" tabindex="0">...Software & Design...</section>
+      <section class="face" data-index="4" role="button" tabindex="0">...Projects & Research...</section>
+      <section class="face" data-index="5" role="button" tabindex="0">...Education...</section>
+      <section class="face" data-index="6" role="button" tabindex="0">...Work Experience...</section>
+      <section class="face" data-index="7" role="button" tabindex="0">...Languages & Strengths...</section>
+    </div>
+  </div>
+
+  <script>
+    // Cylinder logic
+    const prism = document.getElementById('prism');
+    const faces = document.querySelectorAll('.face');
+    const snapAngle = 45;
+    let currentRotation = 0;
+    let activeFace = null;
+
+    function getFrontIndex() {
+      return ((-Math.round(currentRotation / snapAngle)) % faces.length + faces.length) % faces.length;
+    }
+
+    function updatePrismRotation() {
+      prism.style.transform = `translate(-50%, -50%) rotateY(${currentRotation}deg)`;
+    }
+
+    function clearActive() {
+      activeFace = null;
+      faces.forEach(f => {
+        f.classList.remove('active');
+        f.classList.remove('hidden');
+      });
+    }
+
+    faces.forEach(face => {
+      face.addEventListener('click', e => {
+        e.stopPropagation();
+        if (activeFace) {
+          clearActive();
+          return;
+        }
+
+        const clickedIndex = parseInt(face.dataset.index);
+        const frontIndex = getFrontIndex();
+        const rightIndex = (frontIndex + 1) % faces.length;
+        const leftIndex = (frontIndex - 1 + faces.length) % faces.length;
+
+        if (clickedIndex === frontIndex) {
+          activeFace = face;
+          face.classList.add('active');
+          faces.forEach(f => {
+            if (f !== face) f.classList.add('hidden');
+          });
+        } else if (clickedIndex === rightIndex) {
+          currentRotation -= snapAngle;
+          updatePrismRotation();
+        } else if (clickedIndex === leftIndex) {
+          currentRotation += snapAngle;
+          updatePrismRotation();
+        }
+      });
+    });
+
+    faces.forEach(face => {
+      face.addEventListener('keydown', e => {
+        if (e.key === "Enter" || e.key === " ") {
+          face.click();
+        }
+      });
+    });
+
+    document.body.addEventListener('click', () => {
+      if (activeFace) clearActive();
+    });
+
+    // Star network background
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let points = [], mouse = { x: -9999, y: -9999 };
+    const pointCount = 300;
+    const connectionsPerPoint = 3;
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    function updateCylinderSize() {
+      const vh = window.innerHeight;
+      const radius = Math.min(vh * 0.9, 600);
+      const height = vh * 0.8;
+      const faceWidth = radius * 0.3;
+      // No need to set --expanded-width anymore, width/height are fixed in .face.active
+      document.documentElement.style.setProperty('--radius', `${height /2}px`);
+      document.documentElement.style.setProperty('--height', `${height / 2}px`);
+      document.documentElement.style.setProperty('--face-width', `${3 * height / 8}px`);
+    }
+
+    function createPoints() {
+      points = [];
+      const minDistance = 100;
+      let attempts = 0;
+
+      while (points.length < pointCount && attempts < pointCount * 50) {
+        let x = Math.random() * width;
+        let y = Math.random() * height;
+        let tooClose = false;
+
+        for (let p of points) {
+          let dist = Math.hypot(x - p.x, y - p.y);
+          if (dist < minDistance) {
+            tooClose = true;
+            break;
+          }
+        }
+
+        if (!tooClose) {
+          points.push({
+            x, y,
+            ox: x,
+            oy: y,
+            vx: 0,
+            vy: 0,
+            neighbors: []
+          });
+        }
+
+        attempts++;
+      }
+
+      if (points.length < pointCount) {
+        console.warn(`Only ${points.length} out of ${pointCount} points placed due to spacing limit.`);
+      }
+    }
+
+    function updateNeighbors() {
+      for (let p of points) {
+        let distances = points.map(other => ({
+          point: other,
+          dist: Math.hypot(p.ox - other.ox, p.oy - other.oy)
+        }));
+        distances.sort((a, b) => a.dist - b.dist);
+        p.neighbors = distances.slice(1, connectionsPerPoint + 1).map(d => d.point);
+      }
+    }
+
+    function drawConnections() {
+      for (let p of points) {
+        for (let i = 0; i < p.neighbors.length; i++) {
+          for (let j = i + 1; j < p.neighbors.length; j++) {
+            const p2 = p.neighbors[i];
+            const p3 = p.neighbors[j];
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.lineTo(p3.x, p3.y);
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function updatePoints() {
+      for (let p of points) {
+        let dx = p.ox - p.x;
+        let dy = p.oy - p.y;
+        p.vx += dx * 0.002;
+        p.vy += dy * 0.002;
+
+        let mx = p.x - mouse.x;
+        let my = p.y - mouse.y;
+        let dist = Math.sqrt(mx * mx + my * my);
+        if (dist < 100) {
+          p.vx += mx * 0.01;
+          p.vy += my * 0.01;
+        }
+
+        p.vx *= 0.9;
+        p.vy *= 0.9;
+        p.x += p.vx;
+        p.y += p.vy;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let p of points) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      }
+
+      drawConnections();
+      updatePoints();
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    window.addEventListener('mouseleave', () => {
+      mouse.x = -9999;
+      mouse.y = -9999;
+    });
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        resizeCanvas();
+        createPoints();
+        updateNeighbors();
+        updateCylinderSize();
+      }, 100);
+    });
+
+    resizeCanvas();
+    updateCylinderSize();
+    createPoints();
+    updateNeighbors();
+    draw();
+  </script>
+</body>
+</html>
