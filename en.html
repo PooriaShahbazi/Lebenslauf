@@ -364,7 +364,7 @@
         const rightIndex = (frontIndex + 1) % faces.length;
         const leftIndex = (frontIndex - 1 + faces.length) % faces.length;
 
-        if (clickedIndex === frontIndex) {
+        if (clickedIndex === frontIndex && clickedIndex !== 0) {
           isAutoRotating = false; // stop auto-rotation when expanded
           activeFace = face;
           face.classList.add('active');

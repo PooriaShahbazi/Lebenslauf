@@ -181,6 +181,7 @@
           <strong style="margin: auto;">Persönliche Informationen</strong>
           <div class="face-details expanded-content">
             <div class="text-box">
+              
               <h3 style="margin-top: 0;"> Name: </h3>
               <p> Pooria Shahbazi </p><br>
 
@@ -195,6 +196,7 @@
 
               <h3 style="margin-top: 0;"> GitHub: </h3>
               <p> <a href="https://github.com/PooriaShahbazi">github.com/PooriaShahbazi</a> </p>
+           
             </div>
           </div>
         </div>
@@ -354,7 +356,7 @@
         const rightIndex = (frontIndex + 1) % faces.length;
         const leftIndex = (frontIndex - 1 + faces.length) % faces.length;
 
-        if (clickedIndex === frontIndex) {
+        if (clickedIndex === frontIndex && clickedIndex !== 0) {
           isAutoRotating = false; // stop auto-rotation when expanded
           activeFace = face;
           face.classList.add('active');
