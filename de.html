@@ -6,7 +6,7 @@
   <title>Interactive CV Cylinder + Restoring Star Network</title>
   <style>
     :root {
-      --bg-color: #070b16;
+      --bg-color: #1d0a0a;
       --text-color: #ffffff;
       --face-width: 300px;
       --radius: 450px;
@@ -27,7 +27,7 @@
     }
 
     body {
-      background: linear-gradient(135deg, #0c0948, #3c1414);
+      background: linear-gradient(135deg, #1d0a0a, #352323);
       color: var(--text-color);
       display: flex;
       align-items: center;
@@ -44,31 +44,95 @@
       pointer-events: none;
     }
 
-    .fade-out {
-      opacity: 0;
-      transition: opacity 0.5s ease;
+    #container {
+      width: calc(var(--radius) * 2);
+      height: var(--height);
+      perspective: 1400px;
+      position: relative;
     }
+
+    #prism {
+      width: var(--face-width);
+      height: var(--height);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-style: preserve-3d;
+      transform: translate(-50%, -50%) rotateY(0deg);
+      transition: transform var(--transition-speed) ease-out;
+    }
+
+    .face {
+      position: absolute;
+      width: var(--face-width);
+      height: var(--height);
+      backface-visibility: hidden;
+      background: rgba(112, 56, 56, 0.66);
+      border-radius: 0px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: opacity 0.7s ease, background 0.7s ease;
+      z-index: 0;
+    }
+
+    .face.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .face.active {
+      width: 80vh;
+      height: 45vh;
+      margin-left: calc((var(--face-width) - 80vh) / 2);
+      margin-top: calc((var(--height) - 45vh) / 2);
+      opacity: 1;
+      z-index: 10;
+      background: rgb(72, 40, 40);
+      border-radius: 0px;
+    }
+
+    .face:nth-child(1) { transform: rotateY(0deg) translateZ(var(--radius)); }
+    .face:nth-child(2) { transform: rotateY(45deg) translateZ(var(--radius)); }
+    .face:nth-child(3) { transform: rotateY(90deg) translateZ(var(--radius)); }
+    .face:nth-child(4) { transform: rotateY(135deg) translateZ(var(--radius)); }
+    .face:nth-child(5) { transform: rotateY(180deg) translateZ(var(--radius)); }
+    .face:nth-child(6) { transform: rotateY(225deg) translateZ(var(--radius)); }
+    .face:nth-child(7) { transform: rotateY(270deg) translateZ(var(--radius)); }
+    .face:nth-child(8) { transform: rotateY(315deg) translateZ(var(--radius)); }
   </style>
 </head>
 <body>
+  <div style="position: absolute; top: 10px; right: 20px; z-index: 1000;">
+    <a href="index.html" style="color: white; text-decoration: none; margin-right: 15px;">HOME</a>
+    <a href="en.html" style="color: white; text-decoration: none; margin-right: 10px;">EN</a>
+    <a href="de.html" style="color: white; text-decoration: none;">DE</a>
+  </div>
   <canvas id="bgCanvas"></canvas>
 
-  <div id="selector" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white;">
-    <h1>Select Language</h1>
-    <a href="en.html" style="color: #fff; background: rgba(0,0,0,0.5); padding: 10px 20px; margin: 10px; display: inline-block; text-decoration: none; font-size: 1.5rem; border-radius: 5px;">English</a>
-    <a href="de.html" style="color: #fff; background: rgba(0,0,0,0.5); padding: 10px 20px; margin: 10px; display: inline-block; text-decoration: none; font-size: 1.5rem; border-radius: 5px;">Deutsch</a>
+  <div id="container">
+    <div id="prism">
+      <section class="face" data-index="0" role="button" tabindex="0">...Profile Content...</section>
+      <section class="face" data-index="1" role="button" tabindex="0">...Programming & Web...</section>
+      <section class="face" data-index="2" role="button" tabindex="0">...Simulation & Embedded...</section>
+      <section class="face" data-index="3" role="button" tabindex="0">...Software & Design...</section>
+      <section class="face" data-index="4" role="button" tabindex="0">...Projects & Research...</section>
+      <section class="face" data-index="5" role="button" tabindex="0">...Education...</section>
+      <section class="face" data-index="6" role="button" tabindex="0">...Work Experience...</section>
+      <section class="face" data-index="7" role="button" tabindex="0">...Languages & Strengths...</section>
+    </div>
   </div>
 
   <script>
     // Cylinder logic
-    let isAutoRotating = false;
-    let idleTimeout;
     const prism = document.getElementById('prism');
     const faces = document.querySelectorAll('.face');
     const snapAngle = 45;
     let currentRotation = 0;
     let activeFace = null;
-    let pendingSnap = false;
 
     function getFrontIndex() {
       return ((-Math.round(currentRotation / snapAngle)) % faces.length + faces.length) % faces.length;
@@ -132,7 +196,7 @@
     const ctx = canvas.getContext('2d');
     let width, height;
     let points = [], mouse = { x: -9999, y: -9999 };
-    const pointCount = 300;
+    const pointCount = 150;
     const connectionsPerPoint = 3;
 
     function resizeCanvas() {
@@ -279,49 +343,7 @@
     updateCylinderSize();
     createPoints();
     updateNeighbors();
-    function startIdleTimer() {
-      clearTimeout(idleTimeout);
-      if (isAutoRotating) {
-        pendingSnap = true;
-      }
-      isAutoRotating = false;
-      idleTimeout = setTimeout(() => {
-        isAutoRotating = true;
-        autoRotate();
-      }, 10000);
-    }
-
-    ['mousemove', 'mousedown', 'keydown'].forEach(event =>
-      window.addEventListener(event, startIdleTimer)
-    );
-
-    function autoRotate() {
-      if (isAutoRotating && !activeFace) {
-        currentRotation -= 0.1;
-        updatePrismRotation();
-      } else if (pendingSnap) {
-        pendingSnap = false;
-        // Snap to the next face
-        currentRotation = Math.round(currentRotation / snapAngle) * snapAngle;
-        currentRotation -= snapAngle;
-        updatePrismRotation();
-      }
-      requestAnimationFrame(autoRotate);
-    }
-
-    startIdleTimer();
     draw();
-
-    document.querySelectorAll('a[href$=".html"]').forEach(link => {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const target = this.getAttribute('href');
-        document.body.classList.add('fade-out');
-        setTimeout(() => {
-          window.location.href = target;
-        }, 500);
-      });
-    });
   </script>
 </body>
 </html>
