@@ -53,6 +53,8 @@
 <body>
   <canvas id="bgCanvas"></canvas>
 
+  <img id="floatingPhoto" src="photo.png" alt="Profile" style="width: 150px; position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%); transition: transform 0.2s ease;" />
+
   <div id="selector" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white;">
     <h1>Select Language</h1>
     <a href="en.html" style="color: #fff; background: rgba(0,0,0,0.5); padding: 10px 20px; margin: 10px; display: inline-block; text-decoration: none; font-size: 1.5rem; border-radius: 5px;">English</a>
@@ -279,6 +281,20 @@
     updateCylinderSize();
     createPoints();
     updateNeighbors();
+
+    const floatingPhoto = document.getElementById('floatingPhoto');
+    window.addEventListener('mousemove', e => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const offsetX = Math.max(Math.min(e.clientX - centerX, 50), -50);
+      const offsetY = Math.max(Math.min(e.clientY - centerY, 50), -50);
+      floatingPhoto.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+    });
+
+    window.addEventListener('mouseleave', () => {
+      floatingPhoto.style.transform = `translate(-50%, -50%)`;
+    });
+
     function startIdleTimer() {
       clearTimeout(idleTimeout);
       if (isAutoRotating) {

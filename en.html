@@ -343,7 +343,57 @@
     updateCylinderSize();
     createPoints();
     updateNeighbors();
+
+    const floatingPhoto = document.getElementById('floatingPhoto');
+    window.addEventListener('mousemove', e => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const offsetX = Math.max(Math.min(e.clientX - centerX, 50), -50);
+      const offsetY = Math.max(Math.min(e.clientY - centerY, 50), -50);
+      floatingPhoto.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+    });
+
+    window.addEventListener('mouseleave', () => {
+      floatingPhoto.style.transform = `translate(-50%, -50%)`;
+    });
+
     draw();
+
+    // Idle detection and auto-rotation logic
+    let isAutoRotating = false;
+    let idleTimeout;
+    let pendingSnap = false;
+
+    function startIdleTimer() {
+      clearTimeout(idleTimeout);
+      if (isAutoRotating) {
+        pendingSnap = true;
+      }
+      isAutoRotating = false;
+      idleTimeout = setTimeout(() => {
+        isAutoRotating = true;
+        autoRotate();
+      }, 10000);
+    }
+
+    ['mousemove', 'mousedown', 'keydown'].forEach(event =>
+      window.addEventListener(event, startIdleTimer)
+    );
+
+    function autoRotate() {
+      if (isAutoRotating && !activeFace) {
+        currentRotation -= 0.1;
+        updatePrismRotation();
+      } else if (pendingSnap) {
+        pendingSnap = false;
+        currentRotation = Math.round(currentRotation / snapAngle) * snapAngle;
+        currentRotation -= snapAngle;
+        updatePrismRotation();
+      }
+      requestAnimationFrame(autoRotate);
+    }
+
+    startIdleTimer();
   </script>
 </body>
 </html>
