@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pooria Shahbazi · Embedded Systems & Software</title>
+<meta name="description" content="Pooria Shahbazi – Information Engineering student at HAW Hamburg. Embedded Linux, ESP32 firmware in C, FPGA/VHDL, PCB design, Java & Python. Interactive CV.">
+<meta property="og:title" content="Pooria Shahbazi · Embedded Systems & Software">
+<meta property="og:description" content="Interactive CV – Embedded Linux, microcontrollers, FPGA, PCB design and software.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="photo.jpg">
+<meta name="theme-color" content="#06110c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='12' y='12' width='40' height='40' rx='4' fill='%230c1d15' stroke='%23d9a441' stroke-width='3'/%3E%3Cg stroke='%23d9a441' stroke-width='3'%3E%3Cpath d='M20 4v8M32 4v8M44 4v8M20 52v8M32 52v8M44 52v8M4 20h8M4 32h8M4 44h8M52 20h8M52 32h8M52 44h8'/%3E%3C/g%3E%3Ctext x='32' y='38' font-family='monospace' font-size='16' font-weight='700' text-anchor='middle' fill='%233dff8a'%3EPS%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06110c; --board:#0b1b13; --board-2:#0f2419; --line:#1b3a2a; --line-2:#24503a;
+  --copper:#d9a441; --copper-dim:#8a6a2e; --silk:#e9f1ea; --muted:#9db3a5; --faint:#5f7a6b;
+  --led:#3dff8a; --led-dim:#1d7a45; --red:#ff5a5a; --cyan:#4de1ff; --amber:#ffb340; --violet:#b58cff;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:10px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--silk);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+::selection{background:var(--copper);color:#000}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--led);outline-offset:3px;border-radius:4px}
+
+/* ---------- background ---------- */
+#pcb{position:fixed;inset:0;z-index:0;pointer-events:none}
+.vignette{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,transparent 0%,rgba(6,17,12,.55) 70%,rgba(6,17,12,.9) 100%)}
+main,header,footer{position:relative;z-index:1}
+
+/* ---------- boot ---------- */
+#boot{position:fixed;inset:0;z-index:100;background:#020604;color:#b8f5cf;font:13px/1.6 var(--mono);padding:24px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:opacity .5s,visibility .5s}
+#boot.gone{opacity:0;visibility:hidden}
+#boot .log{white-space:pre-wrap;word-break:break-word;flex:1}
+#boot .ok{color:var(--led)} #boot .ts{color:#4a7a5c} #boot .hl{color:var(--copper)}
+#boot .skip{color:#4a7a5c;font-size:12px}
+#boot::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);pointer-events:none}
+.caret{display:inline-block;width:.6em;height:1.1em;background:var(--led);vertical-align:-.2em;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---------- nav ---------- */
+header.nav{position:sticky;top:0;z-index:50;background:rgba(6,17,12,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1160px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:10px 16px}
+.brand{display:flex;align-items:center;gap:10px;font:700 14px var(--mono);color:var(--silk);white-space:nowrap}
+.brand .ic{width:28px;height:28px;border:2px solid var(--copper);border-radius:4px;display:grid;place-items:center;color:var(--led);font-size:11px;position:relative;background:var(--board)}
+.brand .ic::before,.brand .ic::after{content:"";position:absolute;left:4px;right:4px;height:3px;background:repeating-linear-gradient(90deg,var(--copper) 0 3px,transparent 3px 6px)}
+.brand .ic::before{top:-5px}.brand .ic::after{bottom:-5px}
+.brand small{color:var(--faint);font-weight:400}
+.links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.links::-webkit-scrollbar{display:none}
+.links a{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:6px;color:var(--muted);font:500 13px var(--mono);white-space:nowrap}
+.links a:hover{color:var(--silk);background:var(--board-2);text-decoration:none}
+.links a i{width:7px;height:7px;border-radius:50%;background:#173a27;box-shadow:inset 0 0 0 1px #24503a;transition:.25s}
+.links a.on{color:var(--silk)}
+.links a.on i{background:var(--led);box-shadow:0 0 8px var(--led),0 0 2px #fff inset}
+.nav-r{display:flex;gap:8px;align-items:center}
+.sw{display:flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden;font:600 12px var(--mono)}
+.sw button{background:none;border:0;padding:6px 9px;cursor:pointer;color:var(--faint)}
+.sw button.on{background:var(--copper);color:#1a1205}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1160px;margin:0 auto;padding:0 16px}
+section{padding:72px 0 24px}
+.sec-h{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.sec-h .ref{font:700 12px var(--mono);color:var(--copper);border:1px solid var(--copper-dim);padding:2px 7px;border-radius:4px}
+.sec-h h2{font-size:clamp(26px,4vw,38px);margin:0;letter-spacing:-.02em;font-weight:700}
+.sub{color:var(--muted);max-width:720px;margin:0 0 26px}
+.card{background:linear-gradient(180deg,rgba(15,36,25,.92),rgba(11,27,19,.92));border:1px solid var(--line);border-radius:var(--r);position:relative}
+.mono{font-family:var(--mono)}
+
+/* ---------- hero ---------- */
+.hero{padding:56px 0 24px;display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center}
+.chip-photo{position:relative;width:260px;height:260px}
+.chip-photo .pkg{position:absolute;inset:22px;border-radius:14px;background:#0a0f0c;border:2px solid #222;box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 0 1px #000;overflow:hidden}
+.chip-photo img{width:100%;height:100%;object-fit:cover;filter:saturate(.95) contrast(1.03);transition:.4s}
+.chip-photo .pkg::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.12),transparent 40%);pointer-events:none}
+.chip-photo .dot{position:absolute;left:10px;top:10px;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35);z-index:2}
+.pins{position:absolute;display:flex;justify-content:space-around}
+.pins span{background:linear-gradient(var(--copper),#a77a28);border-radius:1px;transition:background .2s,box-shadow .2s}
+.pins.t,.pins.b{left:40px;right:40px;height:22px}
+.pins.t{top:0;align-items:flex-end}.pins.b{bottom:0}
+.pins.t span,.pins.b span{width:7px;height:20px}
+.pins.l,.pins.r{top:40px;bottom:40px;width:22px;flex-direction:column}
+.pins.l{left:0;align-items:flex-end}.pins.r{right:0}
+.pins.l span,.pins.r span{height:7px;width:20px}
+.pins span.hot{background:var(--led);box-shadow:0 0 10px var(--led)}
+.chip-photo .lbl{position:absolute;bottom:-26px;left:0;right:0;text-align:center;font:500 11px var(--mono);color:var(--faint)}
+.status{display:inline-flex;align-items:center;gap:9px;padding:6px 12px;border:1px solid var(--led-dim);border-radius:999px;font:500 12.5px var(--mono);color:#b9f7d2;background:rgba(61,255,138,.06)}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--led);box-shadow:0 0 10px var(--led);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.hero h1{font-size:clamp(40px,7vw,76px);line-height:1;margin:18px 0 10px;letter-spacing:-.035em}
+.hero h1 .last{color:transparent;-webkit-text-stroke:1.5px var(--copper)}
+.hero .role{font:500 clamp(14px,2vw,17px) var(--mono);color:var(--muted);margin:0 0 8px}
+.typer{font:500 clamp(14px,2.2vw,19px) var(--mono);color:var(--led);height:1.6em;line-height:1.6em;white-space:nowrap;overflow:hidden;margin-bottom:16px}
+.typer .p{color:var(--faint)}
+.hero p.profile{color:#cfdcd3;max-width:640px;margin:0 0 22px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:8px;border:1px solid var(--line-2);background:var(--board-2);color:var(--silk);font:600 14px var(--sans);cursor:pointer;transition:.2s}
+.btn:hover{border-color:var(--copper);text-decoration:none;transform:translateY(-1px)}
+.btn.pri{background:var(--copper);border-color:var(--copper);color:#1a1205}
+.btn.pri:hover{background:#f0b955}
+.btn svg{width:16px;height:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:40px}
+.stat{padding:14px 16px}
+.stat b{display:block;font:700 26px var(--mono);color:var(--copper)}
+.stat span{font-size:13px;color:var(--muted)}
+
+/* ---------- logic analyzer ---------- */
+.la{padding:0;overflow:hidden}
+.la-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line);font:500 12px var(--mono);color:var(--faint)}
+.la-top .rec{display:flex;align-items:center;gap:8px;color:var(--red)}
+.la-top .rec i{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite}
+.la-top .probe{color:var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:700px){.la-top .probe{order:3;flex:1 1 100%}}
+.la-legend{display:flex;gap:14px}
+.la-legend span{display:flex;align-items:center;gap:6px}
+.la-legend i{width:14px;height:3px;border-radius:2px}
+.la-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#la-svg{display:block;min-width:820px;width:100%;user-select:none;touch-action:pan-x}
+#la-svg .ch{cursor:pointer;outline:none}
+#la-svg .ch:focus-visible .bg{fill:rgba(61,255,138,.08);stroke:var(--led)}
+#la-svg .ch .bg{fill:transparent;transition:fill .2s}
+#la-svg .ch:hover .bg{fill:rgba(255,255,255,.03)}
+#la-svg .ch.sel .bg{fill:rgba(217,164,65,.08)}
+#la-svg .ch.dim{opacity:.22}
+#la-svg .wave{fill:none;stroke-width:2;stroke-linejoin:round}
+#la-svg .wave-draw{stroke-dasharray:3000;stroke-dashoffset:3000;animation:draw 2.2s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+#la-svg .chn{font:600 11px var(--mono);fill:var(--muted)}
+#la-svg .chi{font:500 10px var(--mono);fill:var(--faint)}
+#la-svg .dec{font:600 10px var(--mono)}
+#la-svg .axis{font:500 10px var(--mono);fill:var(--faint)}
+.la-detail{display:grid;grid-template-columns:1fr auto;gap:12px;padding:18px 20px;border-top:1px solid var(--line);min-height:120px}
+.la-detail h3{margin:0;font-size:20px}
+.la-detail .meta{font:500 13px var(--mono);color:var(--copper);margin:2px 0 8px}
+.la-detail ul{margin:0;padding-left:18px;color:#cfdcd3}
+.la-detail .kind{font:600 11px var(--mono);padding:3px 8px;border-radius:4px;height:fit-content;white-space:nowrap;justify-self:start;grid-row:1}
+@media (min-width:561px){.la-detail .kind{grid-column:2}}
+.hint{font:500 12px var(--mono);color:var(--faint);margin-top:10px}
+
+/* ---------- projects ---------- */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.proj{padding:20px 20px 18px;transition:transform .25s,border-color .25s,opacity .3s,box-shadow .25s}
+.proj:hover{transform:translateY(-3px);border-color:var(--line-2)}
+.proj .rd{position:absolute;top:12px;right:14px;font:600 11px var(--mono);color:var(--faint)}
+.proj .when{font:500 12px var(--mono);color:var(--copper)}
+.proj h3{margin:4px 0 8px;font-size:19px;line-height:1.25;padding-right:40px}
+.proj p{margin:0 0 10px;color:#cfdcd3;font-size:14.5px}
+.proj ul{margin:0 0 12px;padding-left:18px;color:#cfdcd3;font-size:14.5px}
+.proj li{margin-bottom:4px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font:500 11.5px var(--mono);padding:3px 8px;border-radius:4px;background:#0a1a12;border:1px solid var(--line);color:var(--muted)}
+.tag.hit{border-color:var(--led);color:var(--led);background:rgba(61,255,138,.08)}
+.proj .gh{display:inline-flex;align-items:center;gap:6px;font:500 12.5px var(--mono);margin-top:12px}
+.proj.dim{opacity:.25}
+.proj.lit{border-color:var(--led);box-shadow:0 0 0 1px var(--led),0 0 30px rgba(61,255,138,.12)}
+.proj.feat{grid-column:1/-1;display:grid;grid-template-columns:1fr 1.1fr;gap:24px}
+.proj::before{content:"";position:absolute;left:-1px;top:24px;width:4px;height:26px;background:var(--copper);border-radius:0 3px 3px 0}
+
+/* cypi diagram */
+.diagram{background:#07140d;border:1px solid var(--line);border-radius:8px;padding:8px;position:relative}
+.diagram svg{width:100%;height:auto;display:block}
+.diagram .blk rect{fill:#0d2218;stroke:var(--line-2);stroke-width:1.5;transition:.2s}
+.diagram .blk text{font:600 11px var(--mono);fill:var(--silk);pointer-events:none}
+.diagram .blk .s{font:500 9px var(--mono);fill:var(--faint)}
+.diagram .blk{cursor:pointer}
+.diagram .blk:hover rect,.diagram .blk.on rect{stroke:var(--led);fill:#0f2d1e}
+.diagram .bus{fill:none;stroke:var(--copper-dim);stroke-width:2}
+.diagram .bus.plan{stroke-dasharray:5 5}
+.diagram .bus.on{stroke:var(--led)}
+.diagram .flow{fill:none;stroke:var(--led);stroke-width:2;stroke-dasharray:4 14;animation:flow 1s linear infinite;opacity:0}
+.diagram .flow.on{opacity:1}
+@keyframes flow{to{stroke-dashoffset:-18}}
+.diagram .bl{font:600 9px var(--mono);fill:var(--copper)}
+.diag-info{font:500 12.5px var(--mono);color:var(--muted);padding:8px 6px 2px;min-height:3.2em}
+.diag-info b{color:var(--led)}
+
+/* ---------- skills ---------- */
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.reg{padding:16px 18px}
+.reg-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:8px}
+.reg-h b{font-size:16px}
+.reg-h code{font:500 11.5px var(--mono);color:var(--faint)}
+.bits{display:flex;flex-wrap:wrap;gap:6px}
+.bit{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:5px;border:1px solid var(--line);background:#0a1a12;font:500 12.5px var(--mono);color:#cfdcd3;cursor:pointer;transition:.18s}
+.bit i{width:6px;height:6px;border-radius:50%;background:#1f3d2c;transition:.18s}
+.bit:hover{border-color:var(--copper);color:var(--silk)}
+.bit:hover i{background:var(--copper)}
+.bit.on{border-color:var(--led);color:var(--led);background:rgba(61,255,138,.08)}
+.bit.on i{background:var(--led);box-shadow:0 0 8px var(--led)}
+.bit.nouse{cursor:default}
+.xref{position:sticky;bottom:12px;z-index:5;margin-top:16px;padding:12px 16px;display:none;align-items:center;gap:12px;flex-wrap:wrap;font:500 13px var(--mono);border-color:var(--led-dim);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.xref.show{display:flex}
+.xref b{color:var(--led)}
+.xref button{margin-left:auto;background:none;border:1px solid var(--line-2);border-radius:5px;padding:4px 10px;cursor:pointer;color:var(--muted)}
+
+/* ---------- languages ---------- */
+.lang-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.lang{padding:14px 16px}
+.lang-h{display:flex;justify-content:space-between;align-items:baseline}
+.lang-h b{font-size:16px}
+.lang-h span{font:600 12px var(--mono);color:var(--copper)}
+.pwm{display:block;width:100%;height:34px;margin-top:8px}
+.pwm path{fill:none;stroke:var(--led);stroke-width:1.8}
+.lang small{font:500 11px var(--mono);color:var(--faint)}
+
+/* ---------- console ---------- */
+.term{padding:0;overflow:hidden;font:13.5px/1.6 var(--mono)}
+.term-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);color:var(--faint);font-size:12px}
+.term-bar .d{display:flex;gap:6px}
+.term-bar .d i{width:10px;height:10px;border-radius:50%;background:#24503a}
+.term-bar .d i:first-child{background:var(--red)}.term-bar .d i:nth-child(2){background:var(--amber)}.term-bar .d i:nth-child(3){background:var(--led)}
+.term-body{height:360px;overflow-y:auto;padding:14px 16px;color:#cfe9d8;cursor:text}
+.term-body .l{white-space:pre-wrap;word-break:break-word}
+.term-body .pr{color:var(--led)} .term-body .c{color:var(--copper)} .term-body .m{color:var(--faint)} .term-body .e{color:var(--red)} .term-body .k{color:var(--cyan)}
+.term-in{display:flex;gap:8px}
+.term-in input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--silk);font:inherit;caret-color:var(--led)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--line)}
+.chips button{background:#0a1a12;border:1px solid var(--line);border-radius:5px;padding:4px 9px;font:500 12px var(--mono);color:var(--muted);cursor:pointer}
+.chips button:hover{border-color:var(--copper);color:var(--silk)}
+
+/* ---------- contact ---------- */
+.contact{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.ct{display:flex;align-items:center;gap:14px;padding:16px 18px;color:var(--silk);transition:.2s}
+.ct:hover{border-color:var(--copper);text-decoration:none;transform:translateY(-2px)}
+.ct .pin{width:38px;height:38px;border-radius:50%;border:2px solid var(--copper);display:grid;place-items:center;flex:none;background:radial-gradient(circle,#0a1a12 40%,transparent 41%)}
+.ct .pin svg{width:17px;height:17px;color:var(--copper)}
+.ct small{display:block;font:500 11px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.ct span{font:500 14px var(--mono);word-break:break-all}
+footer{padding:48px 0 40px;color:var(--faint);font:500 12px var(--mono);text-align:center}
+footer .silk{display:inline-block;border:1px solid var(--line);padding:6px 12px;border-radius:4px}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:28px;justify-items:start}
+  .chip-photo{width:200px;height:200px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .proj.feat{grid-template-columns:1fr}
+  .brand small{display:none}
+}
+@media (max-width:560px){
+  .nav-in{gap:8px}
+  .brand span.t{display:none}
+  .skill-grid{grid-template-columns:1fr}
+  .proj-grid{grid-template-columns:1fr}
+  .la-detail{grid-template-columns:1fr}
+  section{padding-top:56px}
+  .term-body{height:300px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none}
+}
+@media print{
+  #pcb,.vignette,#boot,header.nav,#console,.chips{display:none!important}
+  body{background:#fff;color:#000}
+}
+</style>
+</head>
+<body>
+
+<div id="boot" aria-hidden="true"><div class="log" id="boot-log"></div><div class="skip" id="boot-skip">press any key / tap to skip</div></div>
+
+<canvas id="pcb"></canvas>
+<div class="vignette"></div>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top" aria-label="Pooria Shahbazi – top"><span class="ic">PS</span><span class="t">pooria<small>.elf</small></span></a>
+    <nav class="links" id="links"></nav>
+    <div class="nav-r">
+      <div class="sw" role="group" aria-label="Language"><button data-lang="en">EN</button><button data-lang="de">DE</button></div>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+    <div class="hero">
+      <div class="chip-photo reveal" id="chip">
+        <div class="pins t"></div><div class="pins b"></div><div class="pins l"></div><div class="pins r"></div>
+        <div class="pkg"><span class="dot"></span><img src="photo.jpg" alt="Pooria Shahbazi" width="216" height="216"></div>
+        <div class="lbl">U1 · PS-2026 · HAMBURG</div>
+      </div>
+      <div class="reveal">
+        <span class="status"><i></i><span data-t="status"></span></span>
+        <h1>Pooria <span class="last">Shahbazi</span></h1>
+        <p class="role" data-t="role"></p>
+        <div class="typer" aria-live="polite"><span class="p">&gt; </span><span id="typer"></span><span class="caret"></span></div>
+        <p class="profile" id="profile"></p>
+        <div class="btns">
+          <a class="btn pri" id="cv-btn" href="CV_Pooria_Shahbazi_EN.pdf" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16"/></svg><span data-t="cv"></span></a>
+          <a class="btn" href="#contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg><span data-t="talk"></span></a>
+          <a class="btn" href="#console"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-5-6-5M12 19h8"/></svg><span data-t="tryshell"></span></a>
+        </div>
+      </div>
+    </div>
+    <div class="stats reveal" id="stats"></div>
+
+    <section id="timeline">
+      <div class="sec-h"><span class="ref">J1</span><h2 data-t="s_tl"></h2></div>
+      <p class="sub" data-t="s_tl_sub"></p>
+      <div class="card la reveal">
+        <div class="la-top">
+          <span class="rec"><i></i>REC · 1 Sa/month</span>
+          <span class="probe" id="probe">T = --/----</span>
+          <span class="la-legend"><span><i style="background:var(--cyan)"></i><span data-t="edu"></span></span><span><i style="background:var(--led)"></i><span data-t="work"></span></span></span>
+        </div>
+        <div class="la-scroll"><svg id="la-svg"></svg></div>
+        <div class="la-detail" id="la-detail"></div>
+      </div>
+      <p class="hint" data-t="la_hint"></p>
+    </section>
+
+    <section id="projects">
+      <div class="sec-h"><span class="ref">J2</span><h2 data-t="s_pr"></h2></div>
+      <p class="sub" data-t="s_pr_sub"></p>
+      <div class="proj-grid" id="proj-grid"></div>
+    </section>
+
+    <section id="skills">
+      <div class="sec-h"><span class="ref">J3</span><h2 data-t="s_sk"></h2></div>
+      <p class="sub" data-t="s_sk_sub"></p>
+      <div class="skill-grid" id="skill-grid"></div>
+      <div class="card xref" id="xref"></div>
+    </section>
+
+    <section id="languages">
+      <div class="sec-h"><span class="ref">J4</span><h2 data-t="s_la"></h2></div>
+      <p class="sub" data-t="s_la_sub"></p>
+      <div class="lang-grid" id="lang-grid"></div>
+    </section>
+
+    <section id="console">
+      <div class="sec-h"><span class="ref">J5</span><h2 data-t="s_co"></h2></div>
+      <p class="sub" data-t="s_co_sub"></p>
+      <div class="card term reveal">
+        <div class="term-bar"><span class="d"><i></i><i></i><i></i></span><span>/dev/ttyACM0 · 115200 8N1</span></div>
+        <div class="term-body" id="term-body"><div id="term-out"></div><div class="term-in"><span class="pr">pooria@cypi:~$</span><input id="term-input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Console input"></div></div>
+        <div class="chips" id="term-chips"></div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="sec-h"><span class="ref">J6</span><h2 data-t="s_ct"></h2></div>
+      <p class="sub" data-t="s_ct_sub"></p>
+      <div class="contact" id="contact-grid"></div>
+    </section>
+  </div>
+</main>
+
+<footer><div class="wrap"><span class="silk" id="foot"></span></div></footer>
+
+<noscript><div style="position:relative;z-index:2;max-width:760px;margin:40px auto;padding:16px;color:#e9f1ea;font-family:sans-serif">Pooria Shahbazi – Information Engineering student (HAW Hamburg), Embedded Systems &amp; Software. <a href="CV_Pooria_Shahbazi_EN.pdf">Download CV (EN)</a> · <a href="CV_Pooria_Shahbazi_DE.pdf">Lebenslauf (DE)</a></div></noscript>
+
+<script>
+"use strict";
+/* ================= DATA ================= */
+const ICON = {
+  gh:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 00-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 016 0C17.6 4.2 18.6 4.5 18.6 4.5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0012 .5z"/></svg>',
+  li:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 11-.02 5 2.5 2.5 0 01.02-5zM3 9h4v12H3zM9 9h3.8v1.7h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.6c0-1.3 0-3-1.9-3s-2.1 1.4-2.1 2.9V21H9z"/></svg>',
+  mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>'
+};
+// light obfuscation against scrapers
+const EMAIL = ["Shahbazi_poria","hotmail.com"].join("@");
+const PHONE = ["+49","1573","1651744"].join(" ");
+const GH = "https://github.com/PooriaShahbazi";
+const LI = "https://www.linkedin.com/in/pooriashahbazi";
+
+const UI = {
+  en:{
+    nav:{timeline:"Timeline",projects:"Projects",skills:"Skills",languages:"Languages",console:"Console",contact:"Contact"},
+    status:"Open to working-student & internship roles",
+    role:"Information Engineering @ HAW Hamburg · Embedded Systems & Software",
+    typer:["writing ESP32 firmware in C","routing PCBs in Altium Designer","booting Embedded Linux on a Pi","describing hardware in VHDL","building Java backends","leading a ROS robotics team"],
+    profile:"Information Engineering student at HAW Hamburg with hands-on experience in Embedded Linux, microcontroller programming (ESP32, C) and software development in Java and Python. Member of the Hawks Racing electronics and software team, working on PCBs and control-unit firmware. Project experience from FPGA design to a Raspberry Pi platform and ROS-based robotics.",
+    cv:"Download CV", talk:"Get in touch", tryshell:"Open console",
+    stats:[["MCU / SoC platforms"],["projects shipped"],["programming languages"],["spoken languages"]],
+    s_tl:"Signal timeline", s_tl_sub:"My education and experience captured as logic-analyzer channels. Move across the trace to probe a point in time, click a channel to decode it.",
+    edu:"education", work:"experience", la_hint:"↔ hover or drag across the trace · click a channel to decode",
+    s_pr:"Projects", s_pr_sub:"Hardware, firmware and software I've built. Hover the CyPi diagram to explore its buses.",
+    s_sk:"Skills", s_sk_sub:"Mapped like a peripheral register. Click any bit to light up where I've used it.",
+    s_la:"Languages", s_la_sub:"Proficiency rendered as PWM duty cycle.",
+    s_co:"Serial console", s_co_sub:"A tiny shell running in your browser. Type help, or tap a command below.",
+    s_ct:"Contact", s_ct_sub:"Looking for a working-student position or internship in embedded systems, IT or software development. Happy to talk.",
+    usedIn:"used in", clear:"clear", none:"—",
+    kindEdu:"EDUCATION", kindWork:"EXPERIENCE", present:"present",
+    contact:{mail:"Email",phone:"Phone",gh:"GitHub",li:"LinkedIn",loc:"Location"},
+    loc:"Hamburg, Germany",
+    foot:"designed & built by Pooria Shahbazi · plain HTML/CSS/JS · no frameworks",
+    diagDefault:"Hover a block to see how it's wired.",
+    planned:"planned"
+  },
+  de:{
+    nav:{timeline:"Werdegang",projects:"Projekte",skills:"Kenntnisse",languages:"Sprachen",console:"Konsole",contact:"Kontakt"},
+    status:"Offen für Werkstudentenstellen & Praktika",
+    role:"Information Engineering @ HAW Hamburg · Embedded Systems & Software",
+    typer:["ESP32-Firmware in C schreiben","Platinen in Altium Designer routen","Embedded Linux auf dem Pi booten","Hardware in VHDL beschreiben","Java-Backends entwickeln","ein ROS-Robotikteam leiten"],
+    profile:"Student im Studiengang Information Engineering an der HAW Hamburg mit praktischer Erfahrung in Embedded Linux, Mikrocontroller-Programmierung (ESP32, C) und Softwareentwicklung in Java und Python. Mitglied im Elektronik- und Software-Team von Hawks Racing, mit Arbeit an Platinen (PCB) und Firmware für Steuergeräte. Projekterfahrung vom FPGA-Entwurf über eine Raspberry-Pi-Plattform bis zu ROS-basierter Robotik.",
+    cv:"Lebenslauf herunterladen", talk:"Kontakt aufnehmen", tryshell:"Konsole öffnen",
+    stats:[["MCU-/SoC-Plattformen"],["Projekte umgesetzt"],["Programmiersprachen"],["Sprachen"]],
+    s_tl:"Signal-Zeitleiste", s_tl_sub:"Ausbildung und Berufserfahrung als Logikanalysator-Kanäle. Mit der Maus über die Spur fahren, um einen Zeitpunkt abzutasten; Kanal anklicken zum Dekodieren.",
+    edu:"Ausbildung", work:"Erfahrung", la_hint:"↔ über die Spur fahren oder ziehen · Kanal anklicken zum Dekodieren",
+    s_pr:"Projekte", s_pr_sub:"Hardware, Firmware und Software, die ich gebaut habe. Fahre über das CyPi-Diagramm, um die Busse zu erkunden.",
+    s_sk:"Kenntnisse", s_sk_sub:"Abgebildet wie ein Peripherie-Register. Klicke ein Bit an, um zu sehen, wo ich es eingesetzt habe.",
+    s_la:"Sprachen", s_la_sub:"Sprachniveau als PWM-Tastverhältnis.",
+    s_co:"Serielle Konsole", s_co_sub:"Eine kleine Shell im Browser. Tippe help oder wähle unten einen Befehl.",
+    s_ct:"Kontakt", s_ct_sub:"Ich suche eine Werkstudentenstelle oder ein Praktikum in den Bereichen Embedded Systems, IT oder Softwareentwicklung. Ich freue mich auf Ihre Nachricht.",
+    usedIn:"eingesetzt in", clear:"zurücksetzen", none:"—",
+    kindEdu:"AUSBILDUNG", kindWork:"ERFAHRUNG", present:"heute",
+    contact:{mail:"E-Mail",phone:"Telefon",gh:"GitHub",li:"LinkedIn",loc:"Ort"},
+    loc:"Hamburg, Deutschland",
+    foot:"entworfen & gebaut von Pooria Shahbazi · reines HTML/CSS/JS · ohne Frameworks",
+    diagDefault:"Fahre über einen Block, um seine Verbindung zu sehen.",
+    planned:"geplant"
+  }
+};
+
+// [en, de] pairs; plain strings are language-neutral
+const TIMELINE = [
+  {k:"work", id:"HAWKS", title:["Electronics and Software Team","Elektronik- und Software-Team"], org:"Hawks Racing e.V.", from:"08/2026", to:null,
+   pts:[["Contribute to the design and implementation of electronics and printed circuit boards (PCBs) for the H22 car using Altium Designer.","Mitarbeit an Entwurf und Umsetzung von Elektronik und Platinen (PCBs) für das Fahrzeug H22 mit Altium Designer."],["Program ESP32 control units in C.","Programmierung von ESP32-Steuergeräten in C."]],
+   tags:["Altium Designer","PCB design","ESP32","C"]},
+  {k:"work", id:"CODERS", title:"Software Engineer", org:"Coders Club Hamburg", url:"https://coders-club.dev", from:"02/2026", to:null,
+   pts:[["Software development with a focus on Java backend.","Softwareentwicklung mit Schwerpunkt Java im Backend."]], tags:["Java","REST APIs","Databases"]},
+  {k:"edu", id:"HAW", title:"B.Sc. Information Engineering", org:"HAW Hamburg", from:"10/2023", to:null, note:["expected graduation: summer 2028","voraussichtlicher Abschluss: Sommer 2028"],
+   pts:[["Project focus: embedded systems, digital design (FPGA/VHDL), robotics, software engineering","Projektschwerpunkte: Eingebettete Systeme, digitaler Entwurf (FPGA/VHDL), Robotik, Softwareentwicklung"]], tags:["FPGA","VHDL","ROS","Java"]},
+  {k:"edu", id:"LUH", title:["Computer Engineering (studies)","Computer Engineering (Studium)"], org:["Leibniz University Hannover","Leibniz Universität Hannover"], from:"10/2021", to:"09/2023", pts:[], tags:["C","Java"]},
+  {k:"work", id:"SERVICE", title:["Service Staff","Servicekraft"], org:["Giovanni L, Hannover and Hamburg","Giovanni L, Hannover und Hamburg"], from:"07/2021", to:null,
+   pts:[["Customer-facing work alongside full-time studies.","Kundenkontakt neben dem Vollzeitstudium."]], tags:[]},
+  {k:"work", id:"AMAZON", title:["Warehouse Assistant","Lagerhelfer"], org:"Amazon Logistics, Garbsen", from:"12/2020", to:"06/2021", pts:[], tags:[]},
+  {k:"work", id:"BC-DFD", title:["Deputy Financial Director","Stellvertretender Finanzdirektor"], org:["BetConstruct and subsidiary, Yerevan","BetConstruct und Tochtergesellschaft, Jerewan"], from:"07/2019", to:"12/2019", pts:[], tags:[]},
+  {k:"work", id:"BC-FIN", title:["Finance Officer – Transaction Review","Finanzmitarbeiter – Transaktionsprüfung"], org:["BetConstruct and subsidiary, Yerevan","BetConstruct und Tochtergesellschaft, Jerewan"], from:"12/2018", to:"06/2019", pts:[], tags:[]},
+  {k:"work", id:"BC-SUP", title:["Customer Support Agent (Backoffice)","Kundenservice-Mitarbeiter (Backoffice)"], org:["BetConstruct and subsidiary, Yerevan","BetConstruct und Tochtergesellschaft, Jerewan"], from:"10/2018", to:"12/2018",
+   pts:[["Handled online enquiries and maintained the company database using BetConstruct Backoffice and Ladesk LiveAgent.","Bearbeitung von Online-Anfragen und Pflege der Unternehmensdatenbank mit BetConstruct Backoffice und Ladesk LiveAgent."]], tags:["Databases"]},
+  {k:"work", id:"DESIGN", title:["Graphic Designer and Content Creator","Grafikdesigner und Content Creator"], org:"International Association of Group Exercises and Water Sports, Yerevan", from:"06/2016", to:"12/2016", pts:[], tags:[]},
+  {k:"edu", id:"DENT", title:["Dentistry (studies)","Zahnmedizin (Studium)"], org:["Haybusak University, Yerevan","Haybusak University, Jerewan"], from:"10/2015", to:"09/2019", pts:[], tags:[]}
+];
+
+const PROJECTS = [
+  {id:"cypi", feat:true, rd:"U1", title:["CyPi – Modular Raspberry Pi Cyberdeck","CyPi – Modulares Raspberry-Pi-Cyberdeck"], when:["Personal project · ongoing","Privates Projekt · laufend"], gh:"CyPi",
+   pts:[["Built a portable Raspberry Pi 4B Linux platform integrating a 5-inch DSI display, LiPo power supply, MAX17048 battery gauge and audio.","Portable Linux-Plattform (Raspberry Pi 4B) mit 5-Zoll-DSI-Display, LiPo-Stromversorgung, MAX17048-Batteriemessung und Audio aufgebaut."],
+        ["Developed Python prototypes for I2C battery monitoring and GPIO rotary-encoder input; configured Linux autostart and prototyped a PySide6 launcher.","Python-Prototypen für I2C-Batterieüberwachung und GPIO-Drehgeberabfrage entwickelt; Linux-Autostart konfiguriert und einen PySide6-Launcher prototypisch umgesetzt."],
+        ["Designed a modular expansion concept for interchangeable TI TM4C1294 and NXP MCX N236 microcontroller modules (magnetic connector and USB CDC protocol in planning).","Erweiterungskonzept für austauschbare Mikrocontroller-Module (TI TM4C1294, NXP MCX N236) entworfen; magnetischer Steckverbinder und USB-CDC-Protokoll befinden sich in Planung."]],
+   tags:["Raspberry Pi 4B","Embedded Linux","Python","I2C","GPIO","PySide6","TI TM4C1294","NXP FRDM-MCXN236","Linux"]},
+  {id:"robotx", rd:"U2", title:["RobotX – Team Leader and Programmer","RobotX – Teamleiter und Programmierer"], when:["HAW Hamburg · 04/2024","HAW Hamburg · 04/2024"],
+   pts:[["Led a multidisciplinary team of five in robot development and programming with Python, ROS and OpenCV.","Leitung eines interdisziplinären Fünferteams; Roboterentwicklung und -programmierung mit Python, ROS und OpenCV."]], tags:["Python","ROS","OpenCV","Linux"]},
+  {id:"fpga", rd:"U3", title:["FPGA Traffic Light Controller","FPGA-Ampelsteuerung"], when:["HAW Hamburg · 01/2025","HAW Hamburg · 01/2025"],
+   pts:[["Designed and implemented a traffic light controller in VHDL (Vivado) and verified the digital logic in simulation.","Ampelsteuerung in VHDL (Vivado) entworfen, implementiert und in der Simulation verifiziert."]], tags:["FPGA","VHDL","Xilinx Vivado"], fsm:true},
+  {id:"chat", rd:"U4", title:["LocalChatApp – Java Client-Server Application","LocalChatApp – Java-Client-Server-Anwendung"], when:["Personal project","Privates Projekt"], gh:"LocalChatApp",
+   pts:[["Developed a multi-user group chat with TCP sockets, one thread per client and server-side message broadcasting.","Gruppenchat mit TCP-Sockets, einem Thread pro Client und serverseitigem Broadcast entwickelt."],["Built a Swing GUI with a background network listener and UI updates on the Event Dispatch Thread.","Swing-GUI mit Netzwerk-Listener im Hintergrund; UI-Updates im Event Dispatch Thread."]],
+   tags:["Java","TCP sockets","Multithreading","Swing","OOP"]},
+  {id:"web", rd:"U5", title:["Interactive Portfolio Website","Interaktive Portfolio-Website"], when:["Personal project","Privates Projekt"], gh:"Lebenslauf",
+   pts:[["Built a German/English website with HTML, CSS and JavaScript, featuring interactive 3D navigation, DOM event handling and an animated Canvas background.","Zweisprachige Website (Deutsch/Englisch) mit HTML, CSS und JavaScript erstellt, inklusive interaktiver 3D-Navigation, DOM-Event-Handling und animiertem Canvas-Hintergrund."]],
+   tags:["JavaScript","HTML/CSS"]},
+  {id:"ezwg", rd:"U6", title:["EzWg – Web Development","EzWg – Webentwicklung"], when:["University business project, HAW Hamburg · 12/2024","Unternehmensprojekt an der HAW Hamburg · 12/2024"],
+   pts:[["Built a website with HTML, CSS and JavaScript.","Website mit HTML, CSS und JavaScript erstellt."]], tags:["HTML/CSS","JavaScript"]},
+  {id:"java", rd:"U7", title:["Additional Java Applications","Weitere Java-Anwendungen"], when:["Personal projects · source on GitHub","Private Projekte · Quellcode auf GitHub"], ghRoot:true,
+   pts:[["ChessGame, ArcadeGame, SpaceInvadersGame and SolarSystemSim.","ChessGame, ArcadeGame, SpaceInvadersGame und SolarSystemSim."]], tags:["Java","OOP"]}
+];
+
+const SKILLS = [
+  {name:["Embedded Systems","Eingebettete Systeme"], addr:"0x4000_0000", items:["Embedded Linux","ESP32","Arduino","Raspberry Pi 4B","TI TM4C1294","NXP FRDM-MCXN236","GPIO","I2C","PCB design","Altium Designer"]},
+  {name:["Digital Design","Digitaler Entwurf"], addr:"0x4000_0004", items:["FPGA","VHDL","Xilinx Vivado"]},
+  {name:["Programming Languages","Programmiersprachen"], addr:"0x4000_0008", items:["C","C++","Java","Python","JavaScript","SQL","Bash"]},
+  {name:["Software & Web","Software & Web"], addr:"0x4000_000C", items:["OOP","Multithreading","TCP sockets","REST APIs","React","HTML/CSS","Swing","PySide6","Databases"]},
+  {name:["Robotics & Analysis","Robotik & Analyse"], addr:"0x4000_0010", items:["ROS","OpenCV","MATLAB"]},
+  {name:["Tools","Werkzeuge"], addr:"0x4000_0014", items:["Git","Linux","Code Composer Studio","MCUXpresso","Android Studio","Unity","LaTeX"]}
+];
+// tools used by projects that aren't spelled out as tags
+const EXTRA_TAGS = {"Code Composer Studio":["cypi"],"MCUXpresso":["cypi"],"Git":["cypi","chat","web","java"]};
+
+const LANGS = [
+  {n:["Persian","Persisch"], lv:["native","Muttersprache"], d:1},
+  {n:["German","Deutsch"], lv:"C1", d:.84},
+  {n:["English","Englisch"], lv:"C1", d:.84},
+  {n:["Turkish","Türkisch"], lv:"B2", d:.66},
+  {n:["Spanish","Spanisch"], lv:"A1", d:.17},
+  {n:["Armenian","Armenisch"], lv:"A1", d:.17}
+];
+
+/* ================= HELPERS ================= */
+let lang = "en";
+try{ const s = localStorage.getItem("ps-lang"); if(s==="de"||s==="en") lang=s; else if((navigator.language||"").toLowerCase().startsWith("de")) lang="de"; }catch(e){}
+const L = v => Array.isArray(v) ? v[lang==="de"?1:0] : v;
+const T = k => UI[lang][k];
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const NOW = (()=>{const d=new Date();return d.getFullYear()+d.getMonth()/12;})();
+const ym = s => { if(!s) return NOW; const [m,y]=s.split("/").map(Number); return y+(m-1)/12; };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ================= BOOT ================= */
+(function boot(){
+  const el = $("#boot"), log = $("#boot-log");
+  let seen=false; try{seen=sessionStorage.getItem("ps-boot")==="1";}catch(e){}
+  if(seen||reduce){ el.classList.add("gone"); return; }
+  const L1 = [
+    ['<span class="hl">U-Boot 2026.11-pooria</span> (Nov 2026)',120],
+    ['DRAM:  4 GiB   ·   Board: CyPi rev.B (Raspberry Pi 4B)',90],
+    ['Loading kernel <span class="hl">pooria-cv.img</span> ............ <span class="ok">OK</span>',260],
+    ['Starting kernel ...',140],
+    ['<span class="ts">[    0.000000]</span> Booting Linux on physical CPU 0x0',70],
+    ['<span class="ts">[    0.284113]</span> edu: HAW Hamburg · B.Sc. Information Engineering ... <span class="ok">mounted</span>',90],
+    ['<span class="ts">[    0.412318]</span> i2c i2c-1: MAX17048 fuel gauge @ 0x36 ... <span class="ok">ok</span>',90],
+    ['<span class="ts">[    0.590871]</span> esp32: hawks-racing ECU firmware (C) ... <span class="ok">probed</span>',90],
+    ['<span class="ts">[    0.731002]</span> fpga: traffic_light.bit (VHDL) ... <span class="ok">configured</span>',90],
+    ['<span class="ts">[    0.902541]</span> ros: robotx node [opencv] ... <span class="ok">started</span>',90],
+    ['<span class="ts">[    1.120455]</span> jvm: coders-club backend ... <span class="ok">listening</span>',90],
+    ['<span class="ts">[    1.501877]</span> systemd[1]: Reached target <span class="hl">Interactive CV</span>.',200],
+    ['',60],
+    ['cypi login: pooria (automatic login)',250]
+  ];
+  let i=0, done=false, t;
+  const fin = ()=>{ if(done) return; done=true; clearTimeout(t); el.classList.add("gone"); try{sessionStorage.setItem("ps-boot","1");}catch(e){} };
+  (function step(){ if(done) return; if(i>=L1.length){ t=setTimeout(fin,450); return; }
+    log.innerHTML += L1[i][0]+"\n"; t=setTimeout(step,L1[i][1]); i++; })();
+  el.addEventListener("click",fin); addEventListener("keydown",fin,{once:true});
+  setTimeout(fin,6000);
+})();
+
+/* ================= PCB BACKGROUND ================= */
+(function pcb(){
+  const cv = $("#pcb"), ctx = cv.getContext("2d");
+  let W,H,dpr,traces=[],pulses=[],stat,mouse={x:-999,y:-999};
+  const G=26;
+  function build(){
+    dpr=Math.min(devicePixelRatio||1,2); W=Math.max(1,innerWidth); H=Math.max(1,innerHeight);
+    cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+"px"; cv.style.height=H+"px";
+    traces=[]; const n=Math.round(W*H/16000);
+    const dirs=[[1,0],[0,1],[-1,0],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+    for(let k=0;k<n;k++){
+      let x=Math.round(Math.random()*W/G)*G, y=Math.round(Math.random()*H/G)*G;
+      let d=dirs[Math.floor(Math.random()*4)]; const pts=[[x,y]]; const segs=2+Math.floor(Math.random()*4);
+      for(let s=0;s<segs;s++){
+        const len=(2+Math.floor(Math.random()*7))*G; x+=d[0]*len; y+=d[1]*len; pts.push([x,y]);
+        const c=dirs.filter(q=>q!==d && !(q[0]===-d[0]&&q[1]===-d[1]) && (Math.abs(q[0])+Math.abs(q[1])===2 ? Math.abs(d[0])+Math.abs(d[1])===1 : true));
+        d=c[Math.floor(Math.random()*c.length)];
+      }
+      let L=0; const seg=[]; for(let s=1;s<pts.length;s++){const l=Math.hypot(pts[s][0]-pts[s-1][0],pts[s][1]-pts[s-1][1]); seg.push(l); L+=l;}
+      traces.push({pts,seg,L,w:Math.random()<.2?2.2:1.2});
+    }
+    stat=document.createElement("canvas"); stat.width=cv.width; stat.height=cv.height;
+    const s=stat.getContext("2d"); s.scale(dpr,dpr);
+    // dotted grid
+    s.fillStyle="rgba(120,180,140,.05)"; for(let gx=0;gx<W;gx+=G) for(let gy=0;gy<H;gy+=G) s.fillRect(gx,gy,1,1);
+    traces.forEach(t=>{
+      s.strokeStyle="rgba(217,164,65,.11)"; s.lineWidth=t.w; s.lineJoin="round"; s.beginPath();
+      t.pts.forEach((p,i)=>i?s.lineTo(p[0],p[1]):s.moveTo(p[0],p[1])); s.stroke();
+      [t.pts[0],t.pts[t.pts.length-1]].forEach(p=>{ s.beginPath(); s.arc(p[0],p[1],3.2,0,7); s.fillStyle="rgba(217,164,65,.16)"; s.fill(); s.beginPath(); s.arc(p[0],p[1],1.3,0,7); s.fillStyle="#06110c"; s.fill(); });
+    });
+    pulses = traces.filter(()=>Math.random()<.45).map(t=>({t,p:Math.random()*t.L,v:40+Math.random()*90,c:Math.random()<.75?"61,255,138":"77,225,255"}));
+  }
+  function at(t,p){ let acc=0; for(let i=0;i<t.seg.length;i++){ if(p<=acc+t.seg[i]){ const f=(p-acc)/t.seg[i], a=t.pts[i], b=t.pts[i+1]; return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]; } acc+=t.seg[i]; } return t.pts[t.pts.length-1]; }
+  let last=performance.now();
+  function frame(now){
+    const dt=Math.min(.05,(now-last)/1000); last=now;
+    if((innerWidth!==W||innerHeight>H)&&innerWidth>0&&innerHeight>0) build();
+    ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height); ctx.drawImage(stat,0,0); ctx.scale(dpr,dpr);
+    // probe glow
+    if(mouse.x>-500){ const g=ctx.createRadialGradient(mouse.x,mouse.y,0,mouse.x,mouse.y,170); g.addColorStop(0,"rgba(217,164,65,.10)"); g.addColorStop(1,"rgba(217,164,65,0)"); ctx.fillStyle=g; ctx.fillRect(mouse.x-170,mouse.y-170,340,340); }
+    pulses.forEach(q=>{
+      q.p+=q.v*dt; if(q.p>q.t.L+60) q.p=-20;
+      const [x,y]=at(q.t,Math.max(0,Math.min(q.t.L,q.p)));
+      const near=Math.hypot(x-mouse.x,y-mouse.y)<170;
+      ctx.lineWidth=q.t.w+.6; ctx.strokeStyle=`rgba(${q.c},${near?.85:.4})`; ctx.beginPath();
+      for(let k=0;k<=8;k++){ const pp=q.p-k*5; if(pp<0||pp>q.t.L) continue; const [a,b]=at(q.t,pp); k?ctx.lineTo(a,b):ctx.moveTo(a,b); }
+      ctx.stroke();
+      if(q.p>=0&&q.p<=q.t.L){ ctx.beginPath(); ctx.arc(x,y,near?2.6:1.8,0,7); ctx.fillStyle=`rgba(${q.c},${near?1:.7})`; ctx.shadowColor=`rgba(${q.c},1)`; ctx.shadowBlur=near?14:8; ctx.fill(); ctx.shadowBlur=0; }
+    });
+    raf=requestAnimationFrame(frame);
+  }
+  let raf, rt;
+  build();
+  if(reduce){ ctx.drawImage(stat,0,0); } else raf=requestAnimationFrame(frame);
+  // only rebuild on real size changes (mobile URL bar show/hide only changes height slightly)
+  addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(innerWidth===W && innerHeight<=H) return; build(); if(reduce) ctx.drawImage(stat,0,0); },150); });
+  addEventListener("pointermove",e=>{mouse.x=e.clientX;mouse.y=e.clientY;},{passive:true});
+  document.addEventListener("visibilitychange",()=>{ if(reduce) return; if(document.hidden) cancelAnimationFrame(raf); else { last=performance.now(); raf=requestAnimationFrame(frame);} });
+})();
+
+/* ================= CHIP PINS ================= */
+(function chip(){
+  ["t","b","l","r"].forEach(s=>{ const e=document.querySelector(".pins."+s); e.innerHTML="<span></span>".repeat(9); });
+  const pins=[...document.querySelectorAll(".pins span")];
+  if(reduce) return;
+  setInterval(()=>{ const p=pins[Math.floor(Math.random()*pins.length)]; p.classList.add("hot"); setTimeout(()=>p.classList.remove("hot"),380); },160);
+})();
+
+/* ================= TYPER ================= */
+let typerTimer;
+function startTyper(){
+  clearTimeout(typerTimer); const el=$("#typer"); const words=T("typer"); let w=0,c=0,del=false;
+  if(reduce){ el.textContent=words[0]; return; }
+  (function tick(){ const s=words[w];
+    if(!del){ c++; el.textContent=s.slice(0,c); if(c===s.length){ del=true; typerTimer=setTimeout(tick,1500); return; } }
+    else { c--; el.textContent=s.slice(0,c); if(c===0){ del=false; w=(w+1)%words.length; } }
+    typerTimer=setTimeout(tick, del?28:55); })();
+}
+
+/* ================= LOGIC ANALYZER ================= */
+let selCh = "HAWKS", skillFilter = null, laDrawn = false;
+const COL = {edu:"#4de1ff", work:"#3dff8a"};
+function renderLA(){
+  const svg=$("#la-svg"); const rowH=34, top=30, left=170, right=24, W=1100;
+  const H=top+TIMELINE.length*rowH+14;
+  const t0=2015.5, t1=Math.max(NOW+.4, 2027);
+  const X=t=>left+(t-t0)/(t1-t0)*(W-left-right);
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  let s="";
+  // grid + axis
+  for(let y=Math.ceil(t0);y<=t1;y++){ const x=X(y); s+=`<line x1="${x}" y1="${top-8}" x2="${x}" y2="${H-8}" stroke="#14301f" stroke-width="1"/><text class="axis" x="${x+4}" y="${top-14}">${y}</text>`; }
+  const xn=X(NOW); s+=`<line x1="${xn}" y1="${top-8}" x2="${xn}" y2="${H-8}" stroke="#d9a441" stroke-dasharray="3 4" opacity=".6"/><text class="axis" x="${xn+4}" y="${H-1}" fill="#d9a441" style="fill:#d9a441">now</text>`;
+  TIMELINE.forEach((it,i)=>{
+    const y=top+i*rowH, lo=y+rowH-9, hi=y+8, a=X(ym(it.from)), ongoing=!it.to, b=ongoing?W-right:X(ym(it.to)), c=COL[it.k], sl=3;
+    const label=esc(it.id);
+    const dimmed = skillFilter && !it.tags.includes(skillFilter);
+    const org=L(it.org), dtxt = org.length*6.2 > b-a-24 ? it.id : org, dw = 10+dtxt.length*6.2;
+    const wave = ongoing ? `M${left},${lo} H${a} L${a+sl},${hi} H${b}` : `M${left},${lo} H${a} L${a+sl},${hi} H${Math.max(a+sl,b-sl)} L${b},${lo} H${W-right}`;
+    s+=`<g class="ch${it.id===selCh?" sel":""}${dimmed?" dim":""}" data-id="${it.id}" tabindex="0" role="button" aria-label="${esc(L(it.title))}">
+      <rect class="bg" x="0" y="${y}" width="${W}" height="${rowH}"/>
+      <circle cx="12" cy="${y+rowH/2}" r="4" fill="${c}"/>
+      <text class="chn" x="24" y="${y+rowH/2-1}">CH${String(i).padStart(2,"0")} ${label}</text>
+      <text class="chi" x="24" y="${y+rowH/2+11}">${esc(it.from)}–${it.to?esc(it.to):"····"}</text>
+      <line x1="${left}" y1="${y+rowH}" x2="${W-right}" y2="${y+rowH}" stroke="#102619"/>
+      <path class="wave${reduce||laDrawn?"":" wave-draw"}" style="animation-delay:${i*90}ms" stroke="${c}" d="${wave}"/>
+      ${ongoing?`<path d="M${b-7},${hi-4} L${b},${hi} L${b-7},${hi+4}" fill="none" stroke="${c}" stroke-width="1.5"/>`:""}
+      ${b-a>60?`<rect x="${a+sl+4}" y="${hi+3}" width="${Math.min(b-a-sl*2-8, dw)}" height="13" rx="2" fill="${c}" opacity=".14"/><text class="dec" x="${a+sl+8}" y="${hi+13}" fill="${c}">${esc(dtxt)}</text>`:""}
+    </g>`;
+  });
+  laDrawn=true;
+  s+=`<line id="la-cur" x1="-10" y1="${top-8}" x2="-10" y2="${H-8}" stroke="#ff5a5a" stroke-width="1.5"/>`;
+  svg.innerHTML=s;
+  svg.querySelectorAll(".ch").forEach(g=>{
+    const pick=()=>{ selCh=g.dataset.id; svg.querySelectorAll(".ch").forEach(x=>x.classList.toggle("sel",x===g)); renderDetail(); };
+    g.addEventListener("click",pick); g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();} });
+  });
+  const cur=svg.querySelector("#la-cur"), probe=$("#probe");
+  const move=e=>{
+    const r=svg.getBoundingClientRect(); const x=(e.clientX-r.left)/r.width*W;
+    if(x<left||x>W-right){ cur.setAttribute("x1",-10); cur.setAttribute("x2",-10); return; }
+    cur.setAttribute("x1",x); cur.setAttribute("x2",x);
+    const t=t0+(x-left)/(W-left-right)*(t1-t0); const y=Math.floor(t), m=Math.floor((t-y)*12)+1;
+    const hiN=TIMELINE.filter(it=>ym(it.from)<=t && t<=(it.to?ym(it.to):NOW)).map(it=>it.id);
+    probe.textContent=`T = ${String(m).padStart(2,"0")}/${y}  ·  HIGH: ${hiN.length?hiN.join(" "):"—"}`;
+  };
+  svg.addEventListener("pointermove",move);
+  svg.addEventListener("pointerleave",()=>{ cur.setAttribute("x1",-10); cur.setAttribute("x2",-10); probe.textContent="T = --/----"; });
+}
+function renderDetail(){
+  const it=TIMELINE.find(x=>x.id===selCh)||TIMELINE[0];
+  const when=`${it.from} – ${it.to||T("present")}`;
+  $("#la-detail").innerHTML=`<div>
+    <h3>${esc(L(it.title))}</h3>
+    <div class="meta">${it.url?`<a href="${it.url}" target="_blank" rel="noopener">${esc(L(it.org))}</a>`:esc(L(it.org))} · ${when}${it.note?` · ${esc(L(it.note))}`:""}</div>
+    ${it.pts.length?`<ul>${it.pts.map(p=>`<li>${esc(L(p))}</li>`).join("")}</ul>`:""}
+    ${it.tags.length?`<div class="tags" style="margin-top:10px">${it.tags.map(t=>`<span class="tag${t===skillFilter?" hit":""}">${esc(t)}</span>`).join("")}</div>`:""}
+  </div><span class="kind" style="color:${COL[it.k]};border:1px solid ${COL[it.k]}">${it.k==="edu"?T("kindEdu"):T("kindWork")}</span>`;
+}
+
+/* ================= PROJECTS ================= */
+const DIAG = {
+  pi:{en:"<b>Raspberry Pi 4B</b> · Linux host · Python services, autostart, PySide6 launcher",de:"<b>Raspberry Pi 4B</b> · Linux-Host · Python-Dienste, Autostart, PySide6-Launcher"},
+  dsi:{en:"<b>5\" display</b> · MIPI DSI ribbon to the Pi",de:"<b>5\"-Display</b> · MIPI-DSI-Flachbandkabel zum Pi"},
+  aud:{en:"<b>Audio</b> · onboard sound output",de:"<b>Audio</b> · Tonausgabe"},
+  enc:{en:"<b>Rotary encoder</b> · read via GPIO in Python",de:"<b>Drehgeber</b> · Abfrage über GPIO in Python"},
+  lipo:{en:"<b>LiPo supply</b> · portable power path",de:"<b>LiPo-Versorgung</b> · mobile Stromversorgung"},
+  gauge:{en:"<b>MAX17048</b> · battery fuel gauge on I²C (0x36)",de:"<b>MAX17048</b> · Akku-Ladezustandsmessung über I²C (0x36)"},
+  tm4c:{en:"<b>TI TM4C1294</b> · swappable MCU module · USB CDC (planned)",de:"<b>TI TM4C1294</b> · austauschbares MCU-Modul · USB CDC (geplant)"},
+  mcx:{en:"<b>NXP MCX N236</b> · swappable MCU module · USB CDC (planned)",de:"<b>NXP MCX N236</b> · austauschbares MCU-Modul · USB CDC (geplant)"}
+};
+function cypiSVG(){
+  const blk=(id,x,y,w,h,t,sub)=>`<g class="blk" data-b="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5"/><text x="${x+w/2}" y="${y+h/2+(sub?-2:4)}" text-anchor="middle">${t}</text>${sub?`<text class="s" x="${x+w/2}" y="${y+h/2+12}" text-anchor="middle">${sub}</text>`:""}</g>`;
+  const bus=(id,d,lbl,lx,ly,plan)=>`<path class="bus${plan?" plan":""}" data-for="${id}" d="${d}"/><path class="flow" data-for="${id}" d="${d}"/>${lbl?`<text class="bl" x="${lx}" y="${ly}">${lbl}</text>`:""}`;
+  return `<svg viewBox="0 0 520 300" role="img" aria-label="CyPi block diagram">
+    ${bus("dsi","M110 60 H200 V110","DSI",140,54)}
+    ${bus("aud","M110 150 H200","AUDIO",132,144)}
+    ${bus("enc","M260 50 V110","GPIO",266,84)}
+    ${bus("gauge","M200 175 H150 V230 H110","I²C",158,206)}
+    ${bus("lipo","M60 210 V200","",0,0)}
+    ${bus("lipo","M60 250 V240","",0,0)}
+    ${bus("tm4c","M320 130 H360 V80 H400","USB CDC",355,124,true)}
+    ${bus("mcx","M320 160 H360 V220 H400","USB CDC",355,178,true)}
+    ${blk("pi",200,105,120,80,"Raspberry Pi 4B","Embedded Linux")}
+    ${blk("dsi",10,40,100,40,"5\" DSI","display")}
+    ${blk("aud",10,130,100,40,"Audio","")}
+    ${blk("enc",210,12,100,38,"Rotary enc.","GPIO")}
+    ${blk("gauge",10,210,100,32,"MAX17048","fuel gauge")}
+    ${blk("lipo",10,250,100,34,"LiPo","power")}
+    ${blk("tm4c",400,60,110,44,"TM4C1294","TI module")}
+    ${blk("mcx",400,200,110,44,"MCX N236","NXP module")}
+    <text class="bl" x="420" y="150" style="fill:#5f7a6b">⇆ magnetic</text><text class="bl" x="420" y="162" style="fill:#5f7a6b">connector</text>
+  </svg>`;
+}
+function wireDiagram(root){
+  const info=root.querySelector(".diag-info");
+  const set=id=>{
+    root.querySelectorAll(".blk").forEach(b=>b.classList.toggle("on",b.dataset.b===id||(id&&id!=="pi"&&b.dataset.b==="pi")));
+    root.querySelectorAll("[data-for]").forEach(p=>p.classList.toggle("on", id==="pi" ? true : p.dataset.for===id || (id==="gauge"&&p.dataset.for==="lipo") || (id==="lipo"&&p.dataset.for==="gauge")));
+    info.innerHTML = id ? DIAG[id][lang] : esc(T("diagDefault"));
+  };
+  root.querySelectorAll(".blk").forEach(b=>{ b.addEventListener("pointerenter",()=>set(b.dataset.b)); b.addEventListener("click",()=>set(b.dataset.b)); });
+  root.querySelector("svg").addEventListener("pointerleave",()=>set(null));
+  set(null);
+}
+function fsmSVG(){
+  return `<svg viewBox="0 0 260 60" style="width:100%;max-width:260px;height:auto;margin:2px 0 12px" aria-hidden="true">
+    <rect x="1" y="6" width="80" height="48" rx="24" fill="#07140d" stroke="#24503a"/>
+    ${["#ff5a5a","#ffb340","#3dff8a"].map((c,i)=>`<circle class="tl" data-i="${i}" cx="${21+i*20}" cy="30" r="7" fill="${c}" opacity=".15"/>`).join("")}
+    <text x="96" y="26" font-family="JetBrains Mono,monospace" font-size="10" fill="#9db3a5">state:</text>
+    <text class="tls" x="96" y="42" font-family="JetBrains Mono,monospace" font-size="12" font-weight="700" fill="#d9a441">S_RED</text>
+  </svg>`;
+}
+let fsmTimer;
+function runFSM(){
+  clearInterval(fsmTimer);
+  const seq=[[0,"S_RED",1800],[0,"S_RED_AMBER",700],[2,"S_GREEN",1800],[1,"S_AMBER",800]];
+  let k=0;
+  const step=()=>{ const s=seq[k%seq.length]; document.querySelectorAll(".tl").forEach(c=>{ const i=+c.dataset.i; const on = i===s[0] || (s[1]==="S_RED_AMBER"&&i===1); c.setAttribute("opacity",on?1:.15); c.style.filter=on?"drop-shadow(0 0 5px "+c.getAttribute("fill")+")":""; }); const t=document.querySelector(".tls"); if(t) t.textContent=s[1]; k++; fsmTimer=setTimeout(step,reduce?99999:s[2]); };
+  step();
+}
+function renderProjects(){
+  $("#proj-grid").innerHTML=PROJECTS.map(p=>{
+    const link=p.gh?`${GH}/${p.gh}`:(p.ghRoot?GH:null);
+    const body=`<div>
+      <span class="when">${esc(L(p.when))}</span>
+      <h3>${esc(L(p.title))}</h3>
+      ${p.fsm?fsmSVG():""}
+      <ul>${p.pts.map(x=>`<li>${esc(L(x))}</li>`).join("")}</ul>
+      <div class="tags">${p.tags.map(t=>`<span class="tag" data-tag="${esc(t)}">${esc(t)}</span>`).join("")}</div>
+      ${link?`<a class="gh" href="${link}" target="_blank" rel="noopener">${ICON.gh.replace("<svg",'<svg width="14" height="14"')} ${link.replace("https://","")}</a>`:""}
+    </div>`;
+    return `<article class="card proj reveal${p.feat?" feat":""}" data-p="${p.id}"><span class="rd">${p.rd}</span>${body}${p.feat?`<div class="diagram">${cypiSVG()}<div class="diag-info"></div></div>`:""}</article>`;
+  }).join("");
+  const d=document.querySelector(".proj.feat .diagram"); if(d) wireDiagram(d);
+  runFSM(); observeReveal(); applySkill();
+}
+
+/* ================= SKILLS ================= */
+function usage(skill){
+  const pr=PROJECTS.filter(p=>p.tags.includes(skill)||(EXTRA_TAGS[skill]||[]).includes(p.id)).map(p=>L(p.title).split(" – ")[0]);
+  const tl=TIMELINE.filter(t=>t.tags.includes(skill)).map(t=>L(t.org).split(",")[0]);
+  return [...new Set([...pr,...tl])];
+}
+function renderSkills(){
+  $("#skill-grid").innerHTML=SKILLS.map(g=>`<div class="card reg reveal"><div class="reg-h"><b>${esc(L(g.name))}</b><code>${g.addr}</code></div>
+    <div class="bits">${g.items.map(s=>{const u=usage(s).length; return `<button class="bit${u?"":" nouse"}" data-skill="${esc(s)}" ${u?"":'tabindex="-1"'}><i></i>${esc(s)}</button>`;}).join("")}</div></div>`).join("");
+  document.querySelectorAll(".bit:not(.nouse)").forEach(b=>b.addEventListener("click",()=>{ skillFilter = skillFilter===b.dataset.skill?null:b.dataset.skill; applySkill(); renderLA(); renderDetail(); }));
+  observeReveal(); applySkill();
+}
+function applySkill(){
+  document.querySelectorAll(".bit").forEach(b=>b.classList.toggle("on",b.dataset.skill===skillFilter));
+  document.querySelectorAll(".proj").forEach(p=>{
+    const P=PROJECTS.find(x=>x.id===p.dataset.p); const hit=skillFilter&&(P.tags.includes(skillFilter)||(EXTRA_TAGS[skillFilter]||[]).includes(P.id));
+    p.classList.toggle("lit",!!hit); p.classList.toggle("dim",!!skillFilter&&!hit);
+  });
+  document.querySelectorAll(".tag[data-tag]").forEach(t=>t.classList.toggle("hit",t.dataset.tag===skillFilter));
+  const x=$("#xref");
+  if(!skillFilter){ x.classList.remove("show"); return; }
+  const u=usage(skillFilter);
+  x.innerHTML=`<span><b>${esc(skillFilter)}</b> → ${esc(T("usedIn"))}: ${u.map(esc).join(" · ")||T("none")}</span><button id="xclr">${esc(T("clear"))} ✕</button>`;
+  x.classList.add("show");
+  $("#xclr").onclick=()=>{ skillFilter=null; applySkill(); renderLA(); renderDetail(); };
+}
+
+/* ================= LANGUAGES ================= */
+function pwmPath(d){
+  const W=240,H=30,per=24; let s=`M0 ${H-3}`, x=0;
+  while(x<W+per){ const hi=Math.max(1,per*d); if(d>=1){ s=`M0 4 H${W+per}`; break; }
+    s+=` V4 H${x+hi} V${H-3} H${x+per}`; x+=per; }
+  return s;
+}
+function renderLangs(){
+  $("#lang-grid").innerHTML=LANGS.map((l,i)=>`<div class="card lang reveal"><div class="lang-h"><b>${esc(L(l.n))}</b><span>${esc(L(l.lv))}</span></div>
+    <svg class="pwm" viewBox="0 0 240 34" preserveAspectRatio="none"><line x1="0" y1="31" x2="240" y2="31" stroke="#14301f"/><g><path d="${pwmPath(l.d)}"/>${reduce?"":`<animateTransform attributeName="transform" type="translate" from="0 0" to="-24 0" dur="${1.2+i*.15}s" repeatCount="indefinite"/>`}</g></svg>
+    <small>duty = ${Math.round(l.d*100)}%</small></div>`).join("");
+  observeReveal();
+}
+
+/* ================= CONTACT ================= */
+function renderContact(){
+  const c=T("contact");
+  const items=[
+    ["mail",c.mail,EMAIL,"mailto:"+EMAIL],
+    ["phone",c.phone,PHONE,"tel:"+PHONE.replace(/\s/g,"")],
+    ["gh",c.gh,"github.com/PooriaShahbazi",GH],
+    ["li",c.li,"linkedin.com/in/pooriashahbazi",LI],
+    ["pin",c.loc,T("loc"),null]
+  ];
+  $("#contact-grid").innerHTML=items.map(([ic,lbl,val,href])=>`<${href?`a href="${href}"${href.startsWith("http")?' target="_blank" rel="noopener"':""}`:"div"} class="card ct reveal"><span class="pin">${ICON[ic]}</span><div><small>${esc(lbl)}</small><span>${esc(val)}</span></div></${href?"a":"div"}>`).join("");
+  observeReveal();
+}
+
+/* ================= STATS ================= */
+function renderStats(){
+  const mcu=["ESP32","Arduino","Raspberry Pi 4B","TI TM4C1294","NXP FRDM-MCXN236","FPGA"].length;
+  const vals=[mcu, PROJECTS.length, SKILLS[2].items.length, LANGS.length];
+  $("#stats").innerHTML=vals.map((v,i)=>`<div class="card stat"><b data-n="${v}">${v}</b><span>${esc(T("stats")[i][0])}</span></div>`).join("");
+}
+
+/* ================= CONSOLE ================= */
+const out=()=>$("#term-out");
+function print(html,cls){ const d=document.createElement("div"); d.className="l"+(cls?" "+cls:""); d.innerHTML=html; out().appendChild(d); const b=$("#term-body"); b.scrollTop=b.scrollHeight; }
+const hist=[]; let hi=0;
+const CMDS = {
+  help:()=>print(
+`<span class="c">available commands</span>
+  <span class="k">whoami</span>       who is this
+  <span class="k">about</span>        profile summary
+  <span class="k">experience</span>   work history          <span class="k">education</span>  degrees
+  <span class="k">projects</span>     list projects         <span class="k">cat</span> &lt;id&gt;   project details
+  <span class="k">skills</span>       skill register dump   <span class="k">lsusb</span>      connected hardware
+  <span class="k">i2cdetect</span>    scan the I²C bus      <span class="k">led</span>        blink the status LED
+  <span class="k">contact</span>      reach me              <span class="k">cv</span>         download PDF
+  <span class="k">lang</span> en|de   switch language       <span class="k">clear</span>      clear screen
+  <span class="k">reboot</span>       replay boot           <span class="m">…and maybe a few hidden ones</span>`),
+  whoami:()=>print(`pooria · ${esc(T("role"))}\n<span class="m">uid=1000(pooria) gid=1000(embedded) groups=hawks-racing,coders-club,haw-hamburg</span>`),
+  about:()=>print(esc(T("profile"))),
+  experience:()=>TIMELINE.filter(t=>t.k==="work").forEach(t=>print(`<span class="c">${t.from}–${t.to||T("present")}</span>  ${esc(L(t.title))} <span class="m">@ ${esc(L(t.org))}</span>`)),
+  education:()=>TIMELINE.filter(t=>t.k==="edu").forEach(t=>print(`<span class="c">${t.from}–${t.to||T("present")}</span>  ${esc(L(t.title))} <span class="m">@ ${esc(L(t.org))}</span>`)),
+  projects:()=>{ PROJECTS.forEach(p=>print(`<span class="k">${p.id.padEnd(8)}</span> ${esc(L(p.title))}`)); print(`<span class="m">→ cat &lt;id&gt; for details</span>`); },
+  ls:()=>CMDS.projects(),
+  cat:a=>{ const p=PROJECTS.find(x=>x.id===(a||"").toLowerCase()); if(!a){ print("usage: cat &lt;id&gt;  (try: cat cypi)","e"); return; } if(!p){ print(`cat: ${esc(a)}: No such file or directory`,"e"); return; }
+    print(`<span class="c">${esc(L(p.title))}</span>  <span class="m">${esc(L(p.when))}</span>`); p.pts.forEach(x=>print("  • "+esc(L(x)))); print(`  <span class="m">[${p.tags.map(esc).join(", ")}]</span>`); if(p.gh) print(`  <a href="${GH}/${p.gh}" target="_blank" rel="noopener">${GH}/${p.gh}</a>`); },
+  skills:()=>SKILLS.forEach(g=>print(`<span class="m">${g.addr}</span>  <span class="c">${esc(L(g.name)).padEnd(22)}</span> ${g.items.map(esc).join(", ")}`)),
+  lsusb:()=>print(
+`Bus 001 Device 002: ID 1cbe:00fd Texas Instruments TM4C1294 <span class="m">(module, planned)</span>
+Bus 001 Device 003: ID 1fc9:0143 NXP MCX N236 <span class="m">(module, planned)</span>
+Bus 001 Device 004: ID 303a:1001 Espressif ESP32 <span class="m">(Hawks Racing ECU)</span>
+Bus 001 Device 005: ID 2341:0043 Arduino Uno`),
+  i2cdetect:()=>print(
+`     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+30: -- -- -- -- -- -- <span class="pr">36</span> -- -- -- -- -- -- -- -- --
+<span class="m">0x36 → MAX17048 fuel gauge (CyPi battery monitor)</span>`),
+  led:()=>{ const s=document.querySelector(".status i"); print("echo 1 &gt; /sys/class/leds/status/brightness  <span class='pr'>●</span>"); if(s){ s.animate([{transform:"scale(1)"},{transform:"scale(2.4)"},{transform:"scale(1)"}],{duration:300,iterations:4}); } document.querySelectorAll(".pins span").forEach((p,i)=>setTimeout(()=>{p.classList.add("hot");setTimeout(()=>p.classList.remove("hot"),220);},i*18)); },
+  contact:()=>{ print(`email    <a href="mailto:${EMAIL}">${EMAIL}</a>`); print(`phone    <a href="tel:${PHONE.replace(/\s/g,"")}">${PHONE}</a>`); print(`github   <a href="${GH}" target="_blank" rel="noopener">${GH.replace("https://","")}</a>`); print(`linkedin <a href="${LI}" target="_blank" rel="noopener">${LI.replace("https://www.","")}</a>`); },
+  email:()=>{ location.href="mailto:"+EMAIL; print("opening mail client …","m"); },
+  github:()=>{ open(GH,"_blank","noopener"); print("opening github …","m"); },
+  linkedin:()=>{ open(LI,"_blank","noopener"); print("opening linkedin …","m"); },
+  cv:()=>{ const f=`CV_Pooria_Shahbazi_${lang.toUpperCase()}.pdf`; print(`downloading <a href="${f}" download>${f}</a> …`); const a=document.createElement("a"); a.href=f; a.download=f; document.body.appendChild(a); a.click(); a.remove(); },
+  lang:a=>{ if(a!=="en"&&a!=="de"){ print("usage: lang en|de","e"); return; } setLang(a); print(`locale set to ${a}`,"m"); },
+  clear:()=>{ out().innerHTML=""; },
+  reboot:()=>{ try{sessionStorage.removeItem("ps-boot");}catch(e){} location.reload(); },
+  date:()=>print(new Date().toString()),
+  uname:()=>print("Linux cypi 6.6.0-pooria #1 SMP aarch64 GNU/Linux"),
+  uptime:()=>{ const y=(NOW-2015.75).toFixed(1); print(`up ${y} years in tech & science, load average: high, coffee: nominal`); },
+  sudo:a=>{ if((a||"").startsWith("hire")){ print(`[sudo] password for recruiter: ********`,"m"); setTimeout(()=>{ print(`<span class="pr">✔ Access granted.</span> Great choice — let's talk: <a href="mailto:${EMAIL}">${EMAIL}</a>`); CMDS.led(); },500); } else print("pooria is not in the sudoers file. This incident will be reported. (try: sudo hire pooria)","e"); },
+  hire:()=>CMDS.sudo("hire"),
+  make:()=>print(`gcc -O2 -Wall -o career main.c ambition.c\n<span class="pr">build ok</span> · 0 warnings · 0 errors`),
+  echo:a=>print(esc(a||"")),
+  pwd:()=>print("/home/pooria"),
+  exit:()=>print("there is no escape from a good CV. try: contact","m"),
+  vim:()=>print("you're stuck in vim now. just kidding. :q","m")
+};
+function run(raw){
+  const line=raw.trim(); print(`<span class="pr">pooria@cypi:~$</span> ${esc(line)}`);
+  if(!line) return; hist.push(line); hi=hist.length;
+  const [cmd,...rest]=line.split(/\s+/); const f=CMDS[cmd.toLowerCase()];
+  if(f) f(rest.join(" ")); else print(`${esc(cmd)}: command not found · try <span class="k">help</span>`,"e");
+}
+function initConsole(){
+  print(`<span class="m">CyPi serial console · connected at 115200 baud</span>`);
+  print(`type <span class="k">help</span> to list commands.`);
+  const inp=$("#term-input");
+  inp.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){ run(inp.value); inp.value=""; }
+    else if(e.key==="ArrowUp"){ if(hi>0){hi--; inp.value=hist[hi];} e.preventDefault(); }
+    else if(e.key==="ArrowDown"){ if(hi<hist.length-1){hi++; inp.value=hist[hi];} else {hi=hist.length; inp.value="";} e.preventDefault(); }
+    else if(e.key==="Tab"){ e.preventDefault(); const m=Object.keys(CMDS).filter(k=>k.startsWith(inp.value)); if(m.length===1) inp.value=m[0]+" "; else if(m.length) print(m.join("  "),"m"); }
+    else if(e.key==="l"&&e.ctrlKey){ e.preventDefault(); CMDS.clear(); }
+  });
+  $("#term-body").addEventListener("click",e=>{ if(!e.target.closest("a")&&!getSelection().toString()) inp.focus({preventScroll:true}); });
+  $("#term-chips").innerHTML=["help","whoami","projects","cat cypi","i2cdetect","lsusb","skills","contact","sudo hire pooria"].map(c=>`<button data-c="${c}">${c}</button>`).join("");
+  $("#term-chips").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) run(b.dataset.c); });
+}
+
+/* ================= NAV / I18N ================= */
+function renderNav(){
+  const n=T("nav");
+  $("#links").innerHTML=Object.keys(n).map(k=>`<a href="#${k}" data-s="${k}"><i></i>${esc(n[k])}</a>`).join("");
+  spy();
+}
+let spyObs;
+function spy(){
+  if(spyObs) spyObs.disconnect();
+  spyObs=new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting){ document.querySelectorAll(".links a").forEach(a=>a.classList.toggle("on",a.dataset.s===e.target.id)); const a=document.querySelector(`.links a[data-s="${e.target.id}"]`), box=$("#links");
+      if(a && box.scrollWidth>box.clientWidth){ const l=a.offsetLeft-box.offsetLeft, r=l+a.offsetWidth;
+        if(l<box.scrollLeft||r>box.scrollLeft+box.clientWidth) box.scrollTo({left:Math.max(0,l-16),behavior:"smooth"}); } } }); },{rootMargin:"-40% 0px -55% 0px"});
+  document.querySelectorAll("main section[id]").forEach(s=>spyObs.observe(s));
+}
+let revObs;
+function observeReveal(){
+  if(reduce||!("IntersectionObserver" in window)){ document.querySelectorAll(".reveal").forEach(e=>e.classList.add("in")); return; }
+  if(!revObs) revObs=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); revObs.unobserve(e.target);} }),{rootMargin:"0px 0px -8% 0px"});
+  document.querySelectorAll(".reveal:not(.in)").forEach(e=>revObs.observe(e));
+}
+function setLang(l){
+  lang=l; try{localStorage.setItem("ps-lang",l);}catch(e){}
+  document.documentElement.lang=l;
+  document.querySelectorAll(".sw button").forEach(b=>b.classList.toggle("on",b.dataset.lang===l));
+  document.querySelectorAll("[data-t]").forEach(e=>{ e.textContent=T(e.dataset.t); });
+  $("#profile").textContent=T("profile");
+  $("#cv-btn").href=`CV_Pooria_Shahbazi_${l.toUpperCase()}.pdf`;
+  $("#foot").textContent=`© ${new Date().getFullYear()} · ${T("foot")}`;
+  renderNav(); renderStats(); renderLA(); renderDetail(); renderProjects(); renderSkills(); renderLangs(); renderContact(); startTyper();
+  document.querySelectorAll(".reveal").forEach(e=>{ if(e.getBoundingClientRect().top<innerHeight) e.classList.add("in"); });
+}
+document.querySelectorAll(".sw button").forEach(b=>b.addEventListener("click",()=>setLang(b.dataset.lang)));
+
+setLang(lang);
+initConsole();
+observeReveal();
+</script>
+</body>
+</html>
