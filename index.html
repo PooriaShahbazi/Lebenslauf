@@ -679,8 +679,8 @@ const DIAG = {
   dsi:{en:"<b>5\" display</b> · MIPI DSI ribbon to the Pi",de:"<b>5\"-Display</b> · MIPI-DSI-Flachbandkabel zum Pi"},
   aud:{en:"<b>Audio</b> · onboard sound output",de:"<b>Audio</b> · Tonausgabe"},
   enc:{en:"<b>Rotary encoder</b> · read via GPIO in Python",de:"<b>Drehgeber</b> · Abfrage über GPIO in Python"},
-  lipo:{en:"<b>LiPo supply</b> · portable power path",de:"<b>LiPo-Versorgung</b> · mobile Stromversorgung"},
-  gauge:{en:"<b>MAX17048</b> · battery fuel gauge on I²C (0x36)",de:"<b>MAX17048</b> · Akku-Ladezustandsmessung über I²C (0x36)"},
+  lipo:{en:"<b>LiPo battery</b> · powers the Pi; the MAX17048 senses the cell",de:"<b>LiPo-Akku</b> · versorgt den Pi; der MAX17048 misst die Zelle"},
+  gauge:{en:"<b>MAX17048</b> · fuel gauge senses the LiPo cell and reports charge to the Pi over I²C (0x36)",de:"<b>MAX17048</b> · Ladezustandsmesser misst die LiPo-Zelle und meldet den Ladestand über I²C (0x36) an den Pi"},
   tm4c:{en:"<b>TI TM4C1294</b> · swappable MCU module · USB CDC (planned)",de:"<b>TI TM4C1294</b> · austauschbares MCU-Modul · USB CDC (geplant)"},
   mcx:{en:"<b>NXP MCX N236</b> · swappable MCU module · USB CDC (planned)",de:"<b>NXP MCX N236</b> · austauschbares MCU-Modul · USB CDC (geplant)"}
 };
@@ -691,17 +691,17 @@ function cypiSVG(){
     ${bus("dsi","M110 60 H200 V110","DSI",140,54)}
     ${bus("aud","M110 150 H200","AUDIO",132,144)}
     ${bus("enc","M260 50 V110","GPIO",266,84)}
-    ${bus("gauge","M200 175 H150 V230 H110","I²C",158,206)}
-    ${bus("lipo","M60 210 V200","",0,0)}
-    ${bus("lipo","M60 250 V240","",0,0)}
-    ${bus("tm4c","M320 130 H360 V80 H400","USB CDC",355,124,true)}
-    ${bus("mcx","M320 160 H360 V220 H400","USB CDC",355,178,true)}
+    ${bus("gauge","M110 226 H150 V175 H200","I²C",156,206)}
+    ${bus("gauge lipo","M110 262 H200","SENSE",136,256)}
+    ${bus("lipo","M260 245 V185","PWR",266,220)}
+    ${bus("tm4c","M320 125 H360 V82 H400","USB CDC",366,108,true)}
+    ${bus("mcx","M320 165 H360 V222 H400","USB CDC",366,198,true)}
     ${blk("pi",200,105,120,80,"Raspberry Pi 4B","Embedded Linux")}
     ${blk("dsi",10,40,100,40,"5\" DSI","display")}
     ${blk("aud",10,130,100,40,"Audio","")}
     ${blk("enc",210,12,100,38,"Rotary enc.","GPIO")}
-    ${blk("gauge",10,210,100,32,"MAX17048","fuel gauge")}
-    ${blk("lipo",10,250,100,34,"LiPo","power")}
+    ${blk("gauge",10,212,100,60,"MAX17048","fuel gauge")}
+    ${blk("lipo",200,245,120,40,"LiPo","battery")}
     ${blk("tm4c",400,60,110,44,"TM4C1294","TI module")}
     ${blk("mcx",400,200,110,44,"MCX N236","NXP module")}
     <text class="bl" x="420" y="150" style="fill:#5f7a6b">⇆ magnetic</text><text class="bl" x="420" y="162" style="fill:#5f7a6b">connector</text>
@@ -711,7 +711,7 @@ function wireDiagram(root){
   const info=root.querySelector(".diag-info");
   const set=id=>{
     root.querySelectorAll(".blk").forEach(b=>b.classList.toggle("on",b.dataset.b===id||(id&&id!=="pi"&&b.dataset.b==="pi")));
-    root.querySelectorAll("[data-for]").forEach(p=>p.classList.toggle("on", id==="pi" ? true : p.dataset.for===id || (id==="gauge"&&p.dataset.for==="lipo") || (id==="lipo"&&p.dataset.for==="gauge")));
+    root.querySelectorAll("[data-for]").forEach(p=>p.classList.toggle("on", id==="pi" || (!!id && p.dataset.for.split(" ").includes(id))));
     info.innerHTML = id ? DIAG[id][lang] : esc(T("diagDefault"));
   };
   root.querySelectorAll(".blk").forEach(b=>{ b.addEventListener("pointerenter",()=>set(b.dataset.b)); b.addEventListener("click",()=>set(b.dataset.b)); });
