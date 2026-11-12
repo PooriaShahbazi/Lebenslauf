@@ -229,13 +229,14 @@ section{padding:72px 0 24px}
 .chips button:hover{border-color:var(--copper);color:var(--silk)}
 
 /* ---------- contact ---------- */
-.contact{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-.ct{display:flex;align-items:center;gap:14px;padding:16px 18px;color:var(--silk);transition:.2s}
+.contact{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:14px}
+.ct{display:flex;align-items:center;gap:14px;padding:16px 18px;color:var(--silk);transition:.2s;min-width:0}
+.ct > div{min-width:0}
 .ct:hover{border-color:var(--copper);text-decoration:none;transform:translateY(-2px)}
 .ct .pin{width:38px;height:38px;border-radius:50%;border:2px solid var(--copper);display:grid;place-items:center;flex:none;background:radial-gradient(circle,#0a1a12 40%,transparent 41%)}
 .ct .pin svg{width:17px;height:17px;color:var(--copper)}
 .ct small{display:block;font:500 11px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
-.ct span{font:500 14px var(--mono);word-break:break-all}
+.ct > div span{display:block;font:500 clamp(12.5px,1.4vw,14px) var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 footer{padding:48px 0 40px;color:var(--faint);font:500 12px var(--mono);text-align:center}
 footer .silk{display:inline-block;border:1px solid var(--line);padding:6px 12px;border-radius:4px}
 
