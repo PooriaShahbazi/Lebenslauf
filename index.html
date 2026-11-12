@@ -176,6 +176,7 @@ section{padding:72px 0 24px}
 .diagram .blk:hover rect,.diagram .blk.on rect{stroke:var(--led);fill:#0f2d1e}
 .diagram .bus{fill:none;stroke:var(--copper-dim);stroke-width:2}
 .diagram .bus.plan{stroke-dasharray:5 5}
+.diagram .bus.wl{stroke-dasharray:1 5;stroke-linecap:round;stroke-width:2.5}
 .diagram .bus.on{stroke:var(--led)}
 .diagram .flow{fill:none;stroke:var(--led);stroke-width:2;stroke-dasharray:4 14;animation:flow 1s linear infinite;opacity:0}
 .diagram .flow.on{opacity:1}
@@ -677,40 +678,63 @@ function renderDetail(){
 const DIAG = {
   pi:{en:"<b>Raspberry Pi 4B</b> · Linux host · Python services, autostart, PySide6 launcher",de:"<b>Raspberry Pi 4B</b> · Linux-Host · Python-Dienste, Autostart, PySide6-Launcher"},
   dsi:{en:"<b>5\" display</b> · MIPI DSI ribbon to the Pi",de:"<b>5\"-Display</b> · MIPI-DSI-Flachbandkabel zum Pi"},
-  aud:{en:"<b>Audio</b> · onboard sound output",de:"<b>Audio</b> · Tonausgabe"},
+  amp:{en:"<b>Amplifier module</b> · takes the Pi's audio and drives two speakers · powered with 5 V from the PDU",de:"<b>Verstärkermodul</b> · nimmt das Audiosignal des Pi und treibt zwei Lautsprecher · 5 V aus der PDU"},
+  spk:{en:"<b>Speakers L/R</b> · stereo pair driven by the amplifier",de:"<b>Lautsprecher L/R</b> · Stereopaar am Verstärker"},
+  pdu:{en:"<b>Power distribution unit</b> · splits the 5 V rail to the Pi, the audio amplifier and the keyboard",de:"<b>Stromverteiler (PDU)</b> · verteilt die 5-V-Schiene an den Pi, den Audioverstärker und die Tastatur"},
+  kbd:{en:"<b>Bluetooth keyboard</b> · paired with the Pi over Bluetooth · powered with 5 V from the PDU",de:"<b>Bluetooth-Tastatur</b> · per Bluetooth mit dem Pi gekoppelt · 5 V aus der PDU"},
   enc:{en:"<b>Rotary encoder</b> · read via GPIO in Python",de:"<b>Drehgeber</b> · Abfrage über GPIO in Python"},
-  lipo:{en:"<b>LiPo battery</b> · powers the Pi; the MAX17048 senses the cell",de:"<b>LiPo-Akku</b> · versorgt den Pi; der MAX17048 misst die Zelle"},
+  lipo:{en:"<b>LiPo battery</b> · fuse → switch → charge/discharge module → PDU → Pi, amplifier, keyboard; the MAX17048 senses the cell",de:"<b>LiPo-Akku</b> · Sicherung → Schalter → Lade-/Entlademodul → PDU → Pi, Verstärker, Tastatur; der MAX17048 misst die Zelle"},
+  fuse:{en:"<b>5 A fuse</b> · right at the battery, protects the wiring against shorts",de:"<b>5-A-Sicherung</b> · direkt am Akku, schützt die Verkabelung bei Kurzschluss"},
+  sw:{en:"<b>On/off switch</b> · disconnects the battery from the whole deck",de:"<b>Ein/Aus-Schalter</b> · trennt den Akku vom gesamten Deck"},
+  pm:{en:"<b>Custom charge/discharge module</b> · charges the LiPo and boosts it to 5 V for the PDU",de:"<b>Eigenes Lade-/Entlademodul</b> · lädt den LiPo und wandelt die Spannung auf 5 V für die PDU"},
   gauge:{en:"<b>MAX17048</b> · fuel gauge senses the LiPo cell and reports charge to the Pi over I²C (0x36)",de:"<b>MAX17048</b> · Ladezustandsmesser misst die LiPo-Zelle und meldet den Ladestand über I²C (0x36) an den Pi"},
   tm4c:{en:"<b>TI TM4C1294</b> · swappable MCU module · USB CDC (planned)",de:"<b>TI TM4C1294</b> · austauschbares MCU-Modul · USB CDC (geplant)"},
   mcx:{en:"<b>NXP MCX N236</b> · swappable MCU module · USB CDC (planned)",de:"<b>NXP MCX N236</b> · austauschbares MCU-Modul · USB CDC (geplant)"}
 };
 function cypiSVG(){
   const blk=(id,x,y,w,h,t,sub)=>`<g class="blk" data-b="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5"/><text x="${x+w/2}" y="${y+h/2+(sub?-2:4)}" text-anchor="middle">${t}</text>${sub?`<text class="s" x="${x+w/2}" y="${y+h/2+12}" text-anchor="middle">${sub}</text>`:""}</g>`;
-  const bus=(id,d,lbl,lx,ly,plan)=>`<path class="bus${plan?" plan":""}" data-for="${id}" d="${d}"/><path class="flow" data-for="${id}" d="${d}"/>${lbl?`<text class="bl" x="${lx}" y="${ly}">${lbl}</text>`:""}`;
-  return `<svg viewBox="0 0 520 300" role="img" aria-label="CyPi block diagram">
-    ${bus("dsi","M110 60 H200 V110","DSI",140,54)}
-    ${bus("aud","M110 150 H200","AUDIO",132,144)}
-    ${bus("enc","M260 50 V110","GPIO",266,84)}
-    ${bus("gauge","M110 226 H150 V175 H200","I²C",156,206)}
-    ${bus("gauge lipo","M110 262 H200","SENSE",136,256)}
-    ${bus("lipo","M260 245 V185","PWR",266,220)}
-    ${bus("tm4c","M320 125 H360 V82 H400","USB CDC",366,108,true)}
-    ${bus("mcx","M320 165 H360 V222 H400","USB CDC",366,198,true)}
-    ${blk("pi",200,105,120,80,"Raspberry Pi 4B","Embedded Linux")}
-    ${blk("dsi",10,40,100,40,"5\" DSI","display")}
-    ${blk("aud",10,130,100,40,"Audio","")}
-    ${blk("enc",210,12,100,38,"Rotary enc.","GPIO")}
-    ${blk("gauge",10,212,100,60,"MAX17048","fuel gauge")}
-    ${blk("lipo",200,245,120,40,"LiPo","battery")}
-    ${blk("tm4c",400,60,110,44,"TM4C1294","TI module")}
-    ${blk("mcx",400,200,110,44,"MCX N236","NXP module")}
-    <text class="bl" x="420" y="150" style="fill:#5f7a6b">⇆ magnetic</text><text class="bl" x="420" y="162" style="fill:#5f7a6b">connector</text>
+  const bus=(id,d,lbl,lx,ly,plan)=>`<path class="bus${plan===true?" plan":plan?" "+plan:""}" data-for="${id}" d="${d}"/><path class="flow" data-for="${id}" d="${d}"/>${lbl?`<text class="bl" x="${lx}" y="${ly}">${lbl}</text>`:""}`;
+  return `<svg viewBox="0 0 600 400" role="img" aria-label="CyPi block diagram">
+    ${bus("dsi","M210 60 H300 V110","DSI",232,54)}
+    ${bus("enc","M350 50 V110","GPIO",356,84)}
+    ${bus("amp","M210 157 H260","AUDIO",216,151)}
+    ${bus("amp spk","M110 148 H95 V126 H80","",0,0)}
+    ${bus("amp spk","M110 166 H95 V188 H80","",0,0)}
+    ${bus("gauge","M470 272 H410 V180 H380","I²C",416,232)}
+    ${bus("gauge lipo","M540 300 V345","SENSE",546,327)}
+    ${bus("lipo fuse sw pm pdu","M490 365 H470","",0,0)}
+    ${bus("lipo fuse sw pm pdu","M400 365 H380","",0,0)}
+    ${bus("lipo fuse sw pm pdu","M300 365 H280","",0,0)}
+    ${bus("lipo fuse sw pm pdu","M215 345 V304","",0,0)}
+    ${bus("lipo fuse sw pm pdu","M270 260 V190","5V",276,230)}
+    ${bus("lipo fuse sw pm pdu amp","M180 260 V179","5V",186,230)}
+    ${bus("lipo fuse sw pm pdu kbd","M280 282 H305","5V",285,276)}
+    ${bus("kbd","M350 255 V190","BT",356,226,"wl")}
+    ${bus("tm4c","M380 130 H425 V82 H470","USB CDC",431,112,true)}
+    ${bus("mcx","M380 170 H425 V192 H470","USB CDC",431,184,true)}
+    ${blk("pi",260,110,120,80,"Raspberry Pi 4B","Embedded Linux")}
+    ${blk("dsi",110,40,100,40,"5\" DSI","display")}
+    ${blk("enc",300,12,100,38,"Rotary enc.","GPIO")}
+    ${blk("amp",110,135,100,44,"Amplifier","audio amp")}
+    ${blk("spk",10,110,70,32,"Speaker","L")}
+    ${blk("spk",10,172,70,32,"Speaker","R")}
+    ${blk("pdu",150,260,130,44,"PDU","5 V distribution")}
+    ${blk("kbd",305,255,90,44,"Keyboard","Bluetooth")}
+    ${blk("gauge",470,255,120,45,"MAX17048","fuel gauge")}
+    ${blk("lipo",490,345,100,40,"LiPo","battery")}
+    ${blk("fuse",400,345,70,40,"Fuse","5 A")}
+    ${blk("sw",300,345,80,40,"Switch","on / off")}
+    ${blk("pm",150,345,130,40,"Charge/Disch.","custom module")}
+    ${blk("tm4c",470,60,120,44,"TM4C1294","TI module")}
+    ${blk("mcx",470,170,120,44,"MCX N236","NXP module")}
+    <text class="bl" x="478" y="130" style="fill:#5f7a6b">⇆ magnetic</text><text class="bl" x="478" y="142" style="fill:#5f7a6b">connector</text>
   </svg>`;
 }
 function wireDiagram(root){
   const info=root.querySelector(".diag-info");
   const set=id=>{
-    root.querySelectorAll(".blk").forEach(b=>b.classList.toggle("on",b.dataset.b===id||(id&&id!=="pi"&&b.dataset.b==="pi")));
+    const PWR=["lipo","fuse","sw","pm","pdu"], grp = PWR.includes(id) ? [...PWR,"amp","kbd"] : id==="kbd" ? ["kbd","pdu"] : id==="amp" ? ["amp","spk","pdu"] : id==="spk" ? ["spk","amp"] : [id];
+    root.querySelectorAll(".blk").forEach(b=>b.classList.toggle("on",grp.includes(b.dataset.b)||(id&&id!=="pi"&&b.dataset.b==="pi")));
     root.querySelectorAll("[data-for]").forEach(p=>p.classList.toggle("on", id==="pi" || (!!id && p.dataset.for.split(" ").includes(id))));
     info.innerHTML = id ? DIAG[id][lang] : esc(T("diagDefault"));
   };
