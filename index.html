@@ -121,10 +121,19 @@ section{padding:72px 0 24px}
 .la-top .rec i{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite}
 .la-top .probe{color:var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 @media (max-width:700px){.la-top .probe{order:3;flex:1 1 100%}}
-.la-legend{display:flex;gap:14px}
-.la-legend span{display:flex;align-items:center;gap:6px}
-.la-legend i{width:14px;height:3px;border-radius:2px}
+.la-legend{display:flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:7px;background:rgba(0,0,0,.25)}
+.la-legend button{display:flex;align-items:center;gap:6px;font:inherit;color:var(--faint);background:none;border:0;border-radius:5px;padding:4px 9px;cursor:pointer;transition:color .2s,background .2s}
+.la-legend button:hover{color:var(--muted)}
+.la-legend button[aria-pressed="true"]{color:var(--text,#e8f0ea);background:rgba(255,255,255,.07)}
+.la-legend button:focus-visible{outline:1px solid var(--led);outline-offset:1px}
+.la-legend i{width:14px;height:3px;border-radius:2px;opacity:.45;transition:opacity .2s}
+.la-legend button[aria-pressed="true"] i{opacity:1}
 .la-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.la-scroll,.term-body{scrollbar-width:thin;scrollbar-color:rgba(61,255,138,.28) transparent}
+.la-scroll::-webkit-scrollbar,.term-body::-webkit-scrollbar{height:6px;width:6px;background:transparent}
+.la-scroll::-webkit-scrollbar-track,.term-body::-webkit-scrollbar-track{background:transparent}
+.la-scroll::-webkit-scrollbar-thumb,.term-body::-webkit-scrollbar-thumb{background:rgba(61,255,138,.28);border-radius:3px}
+.la-scroll::-webkit-scrollbar-thumb:hover,.term-body::-webkit-scrollbar-thumb:hover{background:rgba(61,255,138,.5)}
 #la-svg{display:block;min-width:820px;width:100%;user-select:none;touch-action:pan-x}
 #la-svg .ch{cursor:pointer;outline:none}
 #la-svg .ch:focus-visible .bg{fill:rgba(61,255,138,.08);stroke:var(--led)}
@@ -318,7 +327,7 @@ footer .silk{display:inline-block;border:1px solid var(--line);padding:6px 12px;
         <div class="la-top">
           <span class="rec"><i></i>REC · 1 Sa/month</span>
           <span class="probe" id="probe">T = --/----</span>
-          <span class="la-legend"><span><i style="background:var(--cyan)"></i><span data-t="edu"></span></span><span><i style="background:var(--led)"></i><span data-t="work"></span></span></span>
+          <span class="la-legend" role="group" aria-label="Filter"><button type="button" data-view="all" aria-pressed="true"><i style="background:linear-gradient(90deg,var(--cyan) 50%,var(--led) 50%)"></i><span data-t="all"></span></button><button type="button" data-view="edu" aria-pressed="false"><i style="background:var(--cyan)"></i><span data-t="edu"></span></button><button type="button" data-view="work" aria-pressed="false"><i style="background:var(--led)"></i><span data-t="work"></span></button></span>
         </div>
         <div class="la-scroll"><svg id="la-svg"></svg></div>
         <div class="la-detail" id="la-detail"></div>
@@ -393,7 +402,7 @@ const UI = {
     cv:"Download CV", talk:"Get in touch", tryshell:"Open console",
     stats:[["MCU / SoC platforms"],["projects shipped"],["programming languages"],["spoken languages"]],
     s_tl:"Signal timeline", s_tl_sub:"My education and experience captured as logic-analyzer channels. Move across the trace to probe a point in time, click a channel to decode it.",
-    edu:"education", work:"experience", la_hint:"↔ hover or drag across the trace · click a channel to decode",
+    all:"all", edu:"education", work:"experience", la_hint:"↔ hover or drag across the trace · click a channel to decode",
     s_pr:"Projects", s_pr_sub:"Hardware, firmware and software I've built. Hover the CyPi diagram to explore its buses.",
     s_sk:"Skills", s_sk_sub:"Mapped like a peripheral register. Click any bit to light up where I've used it.",
     s_la:"Languages", s_la_sub:"Proficiency rendered as PWM duty cycle.",
@@ -416,7 +425,7 @@ const UI = {
     cv:"Lebenslauf herunterladen", talk:"Kontakt aufnehmen", tryshell:"Konsole öffnen",
     stats:[["MCU-/SoC-Plattformen"],["Projekte umgesetzt"],["Programmiersprachen"],["Sprachen"]],
     s_tl:"Signal-Zeitleiste", s_tl_sub:"Ausbildung und Berufserfahrung als Logikanalysator-Kanäle. Mit der Maus über die Spur fahren, um einen Zeitpunkt abzutasten; Kanal anklicken zum Dekodieren.",
-    edu:"Ausbildung", work:"Erfahrung", la_hint:"↔ über die Spur fahren oder ziehen · Kanal anklicken zum Dekodieren",
+    all:"alle", edu:"Ausbildung", work:"Erfahrung", la_hint:"↔ über die Spur fahren oder ziehen · Kanal anklicken zum Dekodieren",
     s_pr:"Projekte", s_pr_sub:"Hardware, Firmware und Software, die ich gebaut habe. Fahre über das CyPi-Diagramm, um die Busse zu erkunden.",
     s_sk:"Kenntnisse", s_sk_sub:"Abgebildet wie ein Peripherie-Register. Klicke ein Bit an, um zu sehen, wo ich es eingesetzt habe.",
     s_la:"Sprachen", s_la_sub:"Sprachniveau als PWM-Tastverhältnis.",
@@ -618,10 +627,18 @@ function startTyper(){
 
 /* ================= LOGIC ANALYZER ================= */
 let selCh = "HAWKS", skillFilter = null, laDrawn = false;
+let laView = "all"; try{ const v=localStorage.getItem("laView"); if(["all","edu","work"].includes(v)) laView=v; }catch(e){}
+const laItems = () => TIMELINE.filter(it => laView==="all" || it.k===laView);
+function setLaView(v){
+  laView=v; try{ localStorage.setItem("laView",v); }catch(e){}
+  document.querySelectorAll(".la-legend button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.view===v)));
+  if(!laItems().some(it=>it.id===selCh)) selCh=laItems()[0].id;
+  laDrawn=false; renderLA(); renderDetail();
+}
 const COL = {edu:"#4de1ff", work:"#3dff8a"};
 function renderLA(){
   const svg=$("#la-svg"); const rowH=34, top=30, left=170, right=24, W=1100;
-  const H=top+TIMELINE.length*rowH+14;
+  const ITEMS=laItems(); const H=top+ITEMS.length*rowH+14;
   const t0=2015.5, t1=Math.max(NOW+.4, 2027);
   const X=t=>left+(t-t0)/(t1-t0)*(W-left-right);
   svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
@@ -629,7 +646,7 @@ function renderLA(){
   // grid + axis
   for(let y=Math.ceil(t0);y<=t1;y++){ const x=X(y); s+=`<line x1="${x}" y1="${top-8}" x2="${x}" y2="${H-8}" stroke="#14301f" stroke-width="1"/><text class="axis" x="${x+4}" y="${top-14}">${y}</text>`; }
   const xn=X(NOW); s+=`<line x1="${xn}" y1="${top-8}" x2="${xn}" y2="${H-8}" stroke="#d9a441" stroke-dasharray="3 4" opacity=".6"/><text class="axis" x="${xn+4}" y="${H-1}" fill="#d9a441" style="fill:#d9a441">now</text>`;
-  TIMELINE.forEach((it,i)=>{
+  ITEMS.forEach((it,i)=>{
     const y=top+i*rowH, lo=y+rowH-9, hi=y+8, a=X(ym(it.from)), ongoing=!it.to, b=ongoing?W-right:X(ym(it.to)), c=COL[it.k], sl=3;
     const label=esc(it.id);
     const dimmed = skillFilter && !it.tags.includes(skillFilter);
@@ -659,14 +676,14 @@ function renderLA(){
     if(x<left||x>W-right){ cur.setAttribute("x1",-10); cur.setAttribute("x2",-10); return; }
     cur.setAttribute("x1",x); cur.setAttribute("x2",x);
     const t=t0+(x-left)/(W-left-right)*(t1-t0); const y=Math.floor(t), m=Math.floor((t-y)*12)+1;
-    const hiN=TIMELINE.filter(it=>ym(it.from)<=t && t<=(it.to?ym(it.to):NOW)).map(it=>it.id);
+    const hiN=ITEMS.filter(it=>ym(it.from)<=t && t<=(it.to?ym(it.to):NOW)).map(it=>it.id);
     probe.textContent=`T = ${String(m).padStart(2,"0")}/${y}  ·  HIGH: ${hiN.length?hiN.join(" "):"—"}`;
   };
   svg.addEventListener("pointermove",move);
   svg.addEventListener("pointerleave",()=>{ cur.setAttribute("x1",-10); cur.setAttribute("x2",-10); probe.textContent="T = --/----"; });
 }
 function renderDetail(){
-  const it=TIMELINE.find(x=>x.id===selCh)||TIMELINE[0];
+  const it=laItems().find(x=>x.id===selCh)||laItems()[0];
   const when=`${it.from} – ${it.to||T("present")}`;
   $("#la-detail").innerHTML=`<div>
     <h3>${esc(L(it.title))}</h3>
@@ -943,6 +960,8 @@ function setLang(l){
   $("#profile").textContent=T("profile");
   $("#cv-btn").href=`CV_Pooria_Shahbazi_${l.toUpperCase()}.pdf`;
   $("#foot").textContent=`© ${new Date().getFullYear()} · ${T("foot")}`;
+  document.querySelectorAll(".la-legend button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.view===laView)); b.onclick=()=>setLaView(b.dataset.view); });
+  if(!laItems().some(it=>it.id===selCh)) selCh=laItems()[0].id;
   renderNav(); renderStats(); renderLA(); renderDetail(); renderProjects(); renderSkills(); renderLangs(); renderContact(); startTyper();
   document.querySelectorAll(".reveal").forEach(e=>{ if(e.getBoundingClientRect().top<innerHeight) e.classList.add("in"); });
 }

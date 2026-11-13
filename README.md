@@ -15,7 +15,7 @@ An interactive CV website themed around embedded systems: the page boots like a 
 |---|---|
 | **Boot sequence** | U-Boot / kernel-style serial log on first visit (skippable, shown once per session) |
 | **PCB background** | Canvas-rendered copper traces with signal pulses that react to the mouse cursor |
-| **Signal timeline** | Education and experience as logic-analyzer channels – hover to probe a point in time, click a channel to decode its details |
+| **Signal timeline** | Education and experience as logic-analyzer channels – hover to probe a point in time, click a channel to decode its details, and switch between all channels, education only or experience only |
 | **Projects** | Project cards incl. an interactive **CyPi block diagram** – hover any block to trace its connections: LiPo → 5 A fuse → on/off switch → charge/discharge module → 5 V PDU (Pi, amplifier, Bluetooth keyboard), MAX17048 fuel gauge over I²C, DSI display, rotary encoder, amplifier → stereo speakers, and planned TM4C1294 / MCX N236 modules over USB CDC. Plus an animated FPGA traffic-light state machine |
 | **Skills** | Laid out like a peripheral register map – click any skill to highlight the projects and roles where it was used |
 | **Languages** | Proficiency rendered as PWM duty cycle |
